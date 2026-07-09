@@ -1,5 +1,7 @@
 # SchoolBell - 活力課表鈴聲 App
 
+![Android CI](https://github.com/Dolphin/SchoolBell/actions/workflows/android-ci.yml/badge.svg)
+
 SchoolBell 是一款專為校園環境設計的現代化鈴聲排程 App，採用最新的 Android 技術棧建構，提供精確、直覺且非干擾性的響鈴體驗。
 
 ## 🌟 主要功能
