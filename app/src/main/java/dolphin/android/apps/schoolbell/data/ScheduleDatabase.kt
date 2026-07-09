@@ -1,4 +1,4 @@
-package dolphin.android.apps.SchoolBell.data
+package dolphin.android.apps.schoolbell.data
 
 import android.content.Context
 import androidx.room.Database

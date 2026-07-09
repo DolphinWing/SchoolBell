@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "dolphin.android.apps.SchoolBell"
+    namespace = "dolphin.android.apps.schoolbell"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "dolphin.android.apps.SchoolBell"
+        applicationId = "dolphin.android.apps.schoolbell"
         minSdk = 23
         targetSdk = 37
         versionCode = 1

@@ -1,4 +1,4 @@
-package dolphin.android.apps.SchoolBell.ui.theme
+package dolphin.android.apps.schoolbell.ui.theme
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dolphin.android.apps.SchoolBell.R
+import dolphin.android.apps.schoolbell.R
 
 /**
  * Preview function to visualize the vibrant Material 3 color scheme

@@ -1,4 +1,4 @@
-package dolphin.android.apps.SchoolBell.ui
+package dolphin.android.apps.schoolbell.ui
 
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable

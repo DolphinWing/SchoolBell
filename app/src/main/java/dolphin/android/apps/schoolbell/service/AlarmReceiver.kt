@@ -1,12 +1,12 @@
-package dolphin.android.apps.SchoolBell.service
+package dolphin.android.apps.schoolbell.service
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-import dolphin.android.apps.SchoolBell.data.ScheduleDatabase
-import dolphin.android.apps.SchoolBell.data.SettingsRepository
+import dolphin.android.apps.schoolbell.data.ScheduleDatabase
+import dolphin.android.apps.schoolbell.data.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 class AlarmReceiver : BroadcastReceiver() {
     companion object {
         private const val TAG = "AlarmReceiver"
-        const val ACTION_RING = "dolphin.android.apps.SchoolBell.ACTION_RING"
+        const val ACTION_RING = "dolphin.android.apps.schoolbell.ACTION_RING"
     }
 
     override fun onReceive(context: Context, intent: Intent) {

@@ -45,7 +45,7 @@
             android:enabled="true"
             android:exported="false">
             <intent-filter>
-                <action android:name="dolphin.android.apps.SchoolBell.ACTION_RING" />
+                <action android:name="dolphin.android.apps.schoolbell.ACTION_RING" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>

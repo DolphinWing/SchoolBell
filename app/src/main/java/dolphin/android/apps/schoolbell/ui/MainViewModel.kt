@@ -1,18 +1,18 @@
-package dolphin.android.apps.SchoolBell.ui
+package dolphin.android.apps.schoolbell.ui
 
-import android.app.Application
 import android.Manifest
 import android.app.AlarmManager
+import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import dolphin.android.apps.SchoolBell.data.Schedule
-import dolphin.android.apps.SchoolBell.data.ScheduleDatabase
-import dolphin.android.apps.SchoolBell.data.SettingsRepository
-import dolphin.android.apps.SchoolBell.service.AlarmScheduler
+import dolphin.android.apps.schoolbell.data.Schedule
+import dolphin.android.apps.schoolbell.data.ScheduleDatabase
+import dolphin.android.apps.schoolbell.data.SettingsRepository
+import dolphin.android.apps.schoolbell.service.AlarmScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -39,11 +39,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val masterSwitchEnabled: StateFlow<Boolean> = settingsRepository.masterSwitchFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val useCustomBell: StateFlow<Boolean> = settingsRepository.useCustomBellFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     init {
         checkPermissions()
         viewModelScope.launch {
             // Ensure all alarms are synced with the current state on app start
             AlarmScheduler.rescheduleAll(getApplication(), scheduleDao.getAllSchedules(), masterSwitchEnabled.value)
+        }
+    }
+
+    fun toggleUseCustomBell(useCustom: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setUseCustomBell(useCustom)
         }
     }
 
@@ -80,7 +89,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val updated = schedule.copy(isActive = enabled)
             scheduleDao.update(updated)
-            
+
             if (masterSwitchEnabled.value) {
                 if (enabled) {
                     AlarmScheduler.scheduleAlarm(getApplication(), updated)
@@ -102,7 +111,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             )
             val id = scheduleDao.insert(newSchedule)
             val inserted = newSchedule.copy(id = id.toInt())
-            
+
             if (masterSwitchEnabled.value) {
                 AlarmScheduler.scheduleAlarm(getApplication(), inserted)
             }

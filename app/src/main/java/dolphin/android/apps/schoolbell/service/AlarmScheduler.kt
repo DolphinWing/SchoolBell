@@ -1,4 +1,4 @@
-package dolphin.android.apps.SchoolBell.service
+package dolphin.android.apps.schoolbell.service
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-import dolphin.android.apps.SchoolBell.data.Schedule
+import dolphin.android.apps.schoolbell.data.Schedule
 import java.util.Calendar
 
 object AlarmScheduler {
@@ -63,7 +63,7 @@ object AlarmScheduler {
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
         val intent = Intent(context, AlarmReceiver::class.java).apply {
-            action = "dolphin.android.apps.SchoolBell.ACTION_RING"
+            action = "dolphin.android.apps.schoolbell.ACTION_RING"
             putExtra("SCHEDULE_ID", schedule.id)
             putExtra("SCHEDULE_LABEL", schedule.label)
         }
@@ -114,7 +114,7 @@ object AlarmScheduler {
     fun cancelAlarm(context: Context, schedule: Schedule) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
         val intent = Intent(context, AlarmReceiver::class.java).apply {
-            action = "dolphin.android.apps.SchoolBell.ACTION_RING"
+            action = "dolphin.android.apps.schoolbell.ACTION_RING"
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context,

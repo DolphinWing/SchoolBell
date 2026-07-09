@@ -1,4 +1,4 @@
-package dolphin.android.apps.SchoolBell.service
+package dolphin.android.apps.schoolbell.service
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -18,7 +18,14 @@ import android.os.Looper
 import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import dolphin.android.apps.SchoolBell.MainActivity
+import androidx.core.net.toUri
+import dolphin.android.apps.schoolbell.MainActivity
+import dolphin.android.apps.schoolbell.R
+import dolphin.android.apps.schoolbell.data.SettingsRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class BellRingService : Service() {
 
@@ -26,10 +33,11 @@ class BellRingService : Service() {
         private const val TAG = "BellRingService"
         private const val NOTIFICATION_ID = 1001
         private const val CHANNEL_ID = "school_bell_ringing_channel"
-        const val ACTION_STOP = "dolphin.android.apps.SchoolBell.ACTION_STOP"
+        const val ACTION_STOP = "dolphin.android.apps.schoolbell.ACTION_STOP"
     }
 
     private var mediaPlayer: MediaPlayer? = null
+    private val serviceScope = CoroutineScope(Dispatchers.IO)
     private val handler = Handler(Looper.getMainLooper())
     private val autoStopRunnable = Runnable {
         Log.d(TAG, "Auto-stop timeout reached. Silencing.")
@@ -68,8 +76,12 @@ class BellRingService : Service() {
             startForeground(NOTIFICATION_ID, notification)
         }
 
-        // Play Sound
-        playSound()
+        // Play Sound based on settings
+        serviceScope.launch {
+            val settings = SettingsRepository(this@BellRingService)
+            val useCustom = settings.useCustomBellFlow.first()
+            playSound(useCustom)
+        }
 
         // Auto-stop after 15 seconds to prevent continuous ringing
         handler.removeCallbacks(autoStopRunnable)
@@ -78,18 +90,26 @@ class BellRingService : Service() {
         return START_NOT_STICKY
     }
 
-    private fun playSound() {
+    private fun playSound(useCustom: Boolean) {
         if (mediaPlayer != null) {
             return // Already playing
         }
 
         try {
-            val alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+            val audioUri = if (useCustom) {
+                "android.resource://${packageName}/${R.raw.off_class}".toUri()
+            } else {
+                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                    ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                    ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+            }
 
             mediaPlayer = MediaPlayer().apply {
-                setDataSource(this@BellRingService, alarmUri)
+                if (useCustom) {
+                    setDataSource(this@BellRingService, audioUri)
+                } else {
+                    setDataSource(this@BellRingService, audioUri!!)
+                }
                 setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_ALARM)
@@ -101,9 +121,9 @@ class BellRingService : Service() {
                 prepare()
                 start()
             }
-            Log.d(TAG, "MediaPlayer playing successfully")
+            Log.d(TAG, "MediaPlayer playing successfully (custom=$useCustom)")
         } catch (e: Exception) {
-            Log.e(TAG, "Error playing default sound", e)
+            Log.e(TAG, "Error playing sound", e)
         }
     }
 

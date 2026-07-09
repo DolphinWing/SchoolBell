@@ -1,4 +1,4 @@
-package dolphin.android.apps.SchoolBell.data
+package dolphin.android.apps.schoolbell.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -18,6 +18,7 @@ class SettingsRepository(private val context: Context) {
 
     companion object {
         private val MASTER_SWITCH_KEY = booleanPreferencesKey("master_switch_enabled")
+        private val USE_CUSTOM_BELL_KEY = booleanPreferencesKey("use_custom_bell")
     }
 
     val masterSwitchFlow: Flow<Boolean> = context.dataStore.data
@@ -33,9 +34,28 @@ class SettingsRepository(private val context: Context) {
             preferences[MASTER_SWITCH_KEY] ?: true
         }
 
+    val useCustomBellFlow: Flow<Boolean> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            // Default is true
+            preferences[USE_CUSTOM_BELL_KEY] ?: true
+        }
+
     suspend fun setMasterSwitch(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[MASTER_SWITCH_KEY] = enabled
+        }
+    }
+
+    suspend fun setUseCustomBell(useCustom: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[USE_CUSTOM_BELL_KEY] = useCustom
         }
     }
 }
