@@ -2,42 +2,46 @@ package dolphin.android.apps.SchoolBell.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Vibrant Energetic Color Scheme
-// Primary: Electric Indigo
-val PrimaryLight = Color(0xFF6200EE)
+/**
+ * Vibrant Energetic Color Scheme: Electric Blue & Sunset Orange
+ */
+
+// Light Theme Palette
+val PrimaryLight = Color(0xFF0061A4)
 val OnPrimaryLight = Color(0xFFFFFFFF)
-val PrimaryContainerLight = Color(0xFFE8DDFF)
-val OnPrimaryContainerLight = Color(0xFF21005D)
+val PrimaryContainerLight = Color(0xFFD1E4FF)
+val OnPrimaryContainerLight = Color(0xFF001D36)
 
-// Secondary: Bright Amber
-val SecondaryLight = Color(0xFFFFAB00)
+val SecondaryLight = Color(0xFFFF8F00)
 val OnSecondaryLight = Color(0xFFFFFFFF)
-val SecondaryContainerLight = Color(0xFFFFE082)
-val OnSecondaryContainerLight = Color(0xFF261900)
+val SecondaryContainerLight = Color(0xFFFFDDB3)
+val OnSecondaryContainerLight = Color(0xFF291800)
 
-// Tertiary: Spring Green
-val TertiaryLight = Color(0xFF00C853)
+val TertiaryLight = Color(0xFF006A6A)
 val OnTertiaryLight = Color(0xFFFFFFFF)
-val TertiaryContainerLight = Color(0xFFB9F6CA)
-val OnTertiaryContainerLight = Color(0xFF00210B)
+val TertiaryContainerLight = Color(0xFF9CF1F0)
+val OnTertiaryContainerLight = Color(0xFF002020)
 
-// Dark Theme Variants
-val PrimaryDark = Color(0xFFD0BCFF)
-val OnPrimaryDark = Color(0xFF381E72)
-val PrimaryContainerDark = Color(0xFF4F378B)
-val OnPrimaryContainerDark = Color(0xFFE8DDFF)
+val BackgroundLight = Color(0xFFFDFCFF)
+val SurfaceLight = Color(0xFFFDFCFF)
+val OnSurfaceLight = Color(0xFF1A1C1E)
 
-val SecondaryDark = Color(0xFFFFB300)
-val OnSecondaryDark = Color(0xFF4D3000)
-val SecondaryContainerDark = Color(0xFF6E4500)
-val OnSecondaryContainerDark = Color(0xFFFFE082)
+// Dark Theme Palette
+val PrimaryDark = Color(0xFF9ECAFF)
+val OnPrimaryDark = Color(0xFF003258)
+val PrimaryContainerDark = Color(0xFF00497D)
+val OnPrimaryContainerDark = Color(0xFFD1E4FF)
 
-val TertiaryDark = Color(0xFF00E676)
-val OnTertiaryDark = Color(0xFF00391C)
-val TertiaryContainerDark = Color(0xFF005229)
-val OnTertiaryContainerDark = Color(0xFFB9F6CA)
+val SecondaryDark = Color(0xFFFFB951)
+val OnSecondaryDark = Color(0xFF482900)
+val SecondaryContainerDark = Color(0xFF663D00)
+val OnSecondaryContainerDark = Color(0xFFFFDDB3)
 
-val BackgroundLight = Color(0xFFFFFBFE)
-val SurfaceLight = Color(0xFFFFFBFE)
-val BackgroundDark = Color(0xFF1C1B1F)
-val SurfaceDark = Color(0xFF1C1B1F)
+val TertiaryDark = Color(0xFF80D5D4)
+val OnTertiaryDark = Color(0xFF003737)
+val TertiaryContainerDark = Color(0xFF004F4F)
+val OnTertiaryContainerDark = Color(0xFF9CF1F0)
+
+val BackgroundDark = Color(0xFF1A1C1E)
+val SurfaceDark = Color(0xFF1A1C1E)
+val OnSurfaceDark = Color(0xFFE2E2E6)

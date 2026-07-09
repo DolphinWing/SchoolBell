@@ -1,5 +1,12 @@
 package dolphin.android.apps.SchoolBell.ui
 
+import android.Manifest
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,10 +16,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,6 +37,14 @@ fun MainScreen(
 ) {
     val schedules by viewModel.schedules.collectAsState()
     val masterEnabled by viewModel.masterSwitchEnabled.collectAsState()
+    val permissionsState by viewModel.permissionsState.collectAsState()
+    val context = LocalContext.current
+
+    val notificationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        viewModel.checkPermissions()
+    }
 
     Scaffold(
         topBar = {
@@ -74,6 +91,26 @@ fun MainScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
+            // Permission Warnings
+            if (!permissionsState.hasNotificationPermission || !permissionsState.canScheduleExactAlarms) {
+                PermissionWarningCard(
+                    permissionsState = permissionsState,
+                    onRequestNotification = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                    },
+                    onRequestExactAlarm = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                                data = Uri.fromParts("package", context.packageName, null)
+                            }
+                            context.startActivity(intent)
+                        }
+                    }
+                )
+            }
+
             if (schedules.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
@@ -96,6 +133,65 @@ fun MainScreen(
                             onClick = { onEdit(schedule) }
                         )
                     }
+                }
+            }
+        }
+    }
+
+    // Check permissions when returning to the screen (e.g., from settings)
+    DisposableEffect(Unit) {
+        viewModel.checkPermissions()
+        onDispose { }
+    }
+}
+
+@Composable
+fun PermissionWarningCard(
+    permissionsState: MainViewModel.PermissionsState,
+    onRequestNotification: () -> Unit,
+    onRequestExactAlarm: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "權限要求",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            if (!permissionsState.hasNotificationPermission) {
+                Text(
+                    "請開啟通知權限以確保鈴聲能正常顯示通知。",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                TextButton(onClick = onRequestNotification) {
+                    Text("開啟通知權限")
+                }
+            }
+            
+            if (!permissionsState.canScheduleExactAlarms) {
+                Text(
+                    "請允許精確鬧鐘權限，以確保鈴聲能在正確的時間響起。",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                TextButton(onClick = onRequestExactAlarm) {
+                    Text("開啟精確鬧鐘權限")
                 }
             }
         }

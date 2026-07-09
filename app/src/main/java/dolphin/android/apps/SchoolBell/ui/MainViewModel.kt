@@ -1,14 +1,22 @@
 package dolphin.android.apps.SchoolBell.ui
 
 import android.app.Application
+import android.Manifest
+import android.app.AlarmManager
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dolphin.android.apps.SchoolBell.data.Schedule
 import dolphin.android.apps.SchoolBell.data.ScheduleDatabase
 import dolphin.android.apps.SchoolBell.data.SettingsRepository
 import dolphin.android.apps.SchoolBell.service.AlarmScheduler
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -17,6 +25,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val scheduleDao = database.scheduleDao()
     private val settingsRepository = SettingsRepository(application)
 
+    private val _permissionsState = MutableStateFlow(PermissionsState())
+    val permissionsState: StateFlow<PermissionsState> = _permissionsState.asStateFlow()
+
+    data class PermissionsState(
+        val hasNotificationPermission: Boolean = true,
+        val canScheduleExactAlarms: Boolean = true
+    )
+
     val schedules: StateFlow<List<Schedule>> = scheduleDao.getAllSchedulesFlow()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -24,10 +40,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     init {
+        checkPermissions()
         viewModelScope.launch {
             // Ensure all alarms are synced with the current state on app start
             AlarmScheduler.rescheduleAll(getApplication(), scheduleDao.getAllSchedules(), masterSwitchEnabled.value)
         }
+    }
+
+    fun checkPermissions() {
+        val context = getApplication<Application>()
+        val hasNotifications = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+
+        val canExact = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.canScheduleExactAlarms()
+        } else {
+            true
+        }
+
+        _permissionsState.value = PermissionsState(hasNotifications, canExact)
     }
 
     fun toggleMasterSwitch(enabled: Boolean) {

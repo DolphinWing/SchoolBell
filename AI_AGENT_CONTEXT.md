@@ -6,6 +6,8 @@ SchoolBell is a modern Android application for scheduling and triggering school 
 ## 🏗️ Technical Architecture
 - **Architecture**: MVVM with reactive data flows.
 - **UI Framework**: Jetpack Compose (Material Design 3, Edge-to-Edge).
+    - **Theme**: Vibrant "Electric Blue & Sunset Orange" energetic color scheme.
+    - **Visual Identity**: Adaptive App Icon with a jaunty bell (rotated -15 degrees) centered in the 66% safe zone.
 - **Navigation**: **Jetpack Navigation 3** (State-driven destination management).
 - **Adaptive Layout**: **Material 3 Adaptive** (List-Detail Pane Scaffold).
 - **Database**: Room (Schedule items storage).

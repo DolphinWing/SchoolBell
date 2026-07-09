@@ -3,7 +3,14 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,82c4.4,0 8,-3.6 8,-8h-16c0,4.4 3.6,8 8,8zM78,58v-20c0,-12.3 -6.5,-22.6 -18,-25.3V10c0,-3.3 -2.7,-6 -6,-6s-6,2.7 -6,6v2.7C40.5,15.4 34,25.7 34,38v20l-8,8v4h56v-4l-8,-8z" />
+    <!-- Bell icon centered and scaled to stay within the 66% (72dp) safe zone -->
+    <!-- Wrapped in a group with rotation to give it an energetic tilt -->
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:rotation="-15">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M54,76c2.9,0 5.3,-2.4 5.3,-5.3h-10.6c0,2.9 2.4,5.3 5.3,5.3zM70,60v-13.3c0,-8.2 -4.3,-15.1 -12,-16.9V28c0,-2.2 -1.8,-4 -4,-4s-4,1.8 -4,4v1.8C38.3,31.6 34,38.5 34,46.7V60l-5.3,5.3v2.7h50.6v-2.7l-5.3,-5.3z" />
+    </group>
 </vector>
