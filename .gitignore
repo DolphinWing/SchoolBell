@@ -7,21 +7,39 @@ local.properties
 
 # Log/OS Files
 *.log
+.DS_Store
+Thumbs.db
 
-# Android Studio generated files and folders
+# Android Studio / IntelliJ generated files and folders
 captures/
 .externalNativeBuild/
 .cxx/
 *.aab
 *.apk
 output-metadata.json
-
-# IntelliJ
 *.iml
 .idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+!/idea/codeStyles/
+!/idea/copyright/
+!/idea/inspectionProfiles/
+!/idea/icon.png
+!/idea/vcs.xml
+workspace.xml
+tasks.xml
+shelf/
+dictionaries/
+assetWizardSettings.xml
+
+# Kotlin/Java/KSP
+**/build/generated/ksp/
+**/build/generated/source/ksp/
+*.ncj
+*.pyc
+
+# Lint and Test Reports
+**/build/reports/
+**/build/test-results/
+**/build/outputs/
 
 # Keystore files
 *.jks
