@@ -3,6 +3,7 @@ package dolphin.android.apps.schoolbell.ui
 import android.Manifest
 import android.app.AlarmManager
 import android.app.Application
+import android.app.backup.BackupManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -10,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dolphin.android.apps.schoolbell.data.Schedule
+import dolphin.android.apps.schoolbell.data.ScheduleDao
 import dolphin.android.apps.schoolbell.data.ScheduleDatabase
 import dolphin.android.apps.schoolbell.data.SettingsRepository
 import dolphin.android.apps.schoolbell.service.AlarmScheduler
@@ -20,10 +22,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
-    private val database = ScheduleDatabase.getDatabase(application)
-    private val scheduleDao = database.scheduleDao()
-    private val settingsRepository = SettingsRepository(application)
+class MainViewModel(
+    application: Application,
+    private val scheduleDao: ScheduleDao = ScheduleDatabase.getDatabase(application).scheduleDao(),
+    private val settingsRepository: SettingsRepository = SettingsRepository(application),
+    private val backupManager: BackupManager = BackupManager(application)
+) : AndroidViewModel(application) {
 
     private val _permissionsState = MutableStateFlow(PermissionsState())
     val permissionsState: StateFlow<PermissionsState> = _permissionsState.asStateFlow()
@@ -53,6 +57,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleUseCustomBell(useCustom: Boolean) {
         viewModelScope.launch {
             settingsRepository.setUseCustomBell(useCustom)
+            backupManager.dataChanged()
         }
     }
 
@@ -82,6 +87,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             settingsRepository.setMasterSwitch(enabled)
             // Reschedule all based on new master state
             AlarmScheduler.rescheduleAll(getApplication(), schedules.value, enabled)
+            backupManager.dataChanged()
         }
     }
 
@@ -97,6 +103,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     AlarmScheduler.cancelAlarm(getApplication(), updated)
                 }
             }
+            backupManager.dataChanged()
         }
     }
 
@@ -115,6 +122,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             if (masterSwitchEnabled.value) {
                 AlarmScheduler.scheduleAlarm(getApplication(), inserted)
             }
+            backupManager.dataChanged()
         }
     }
 
@@ -126,6 +134,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } else {
                 AlarmScheduler.cancelAlarm(getApplication(), schedule)
             }
+            backupManager.dataChanged()
         }
     }
 
@@ -133,6 +142,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             AlarmScheduler.cancelAlarm(getApplication(), schedule)
             scheduleDao.delete(schedule)
+            backupManager.dataChanged()
         }
     }
 

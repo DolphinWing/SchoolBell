@@ -4,13 +4,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import dolphin.android.apps.schoolbell.data.ScheduleDatabase
 import dolphin.android.apps.schoolbell.data.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class AlarmReceiver : BroadcastReceiver() {
     companion object {
@@ -20,7 +20,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
-        Log.d(TAG, "onReceive action=$action")
+        Timber.tag(TAG).d("onReceive action=$action")
 
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
@@ -32,7 +32,7 @@ class AlarmReceiver : BroadcastReceiver() {
                     val scheduleId = intent.getIntExtra("SCHEDULE_ID", -1)
                     val label = intent.getStringExtra("SCHEDULE_LABEL") ?: "School Bell"
 
-                    Log.d(TAG, "Ring trigger: scheduleId=$scheduleId, label='$label', masterEnabled=$masterEnabled")
+                    Timber.tag(TAG).i("Ring trigger: scheduleId=$scheduleId, label='$label', masterEnabled=$masterEnabled")
 
                     if (masterEnabled && scheduleId != -1) {
                         // Start playing the bell sound
@@ -54,13 +54,13 @@ class AlarmReceiver : BroadcastReceiver() {
                         }
                     }
                 } else if (action == Intent.ACTION_BOOT_COMPLETED || action == "android.intent.action.QUICKBOOT_POWERON") {
-                    Log.d(TAG, "System boot detected. Rescheduling all active alarms.")
+                    Timber.tag(TAG).i("System boot detected. Rescheduling all active alarms.")
                     val db = ScheduleDatabase.getDatabase(context)
                     val schedules = db.scheduleDao().getAllSchedules()
                     AlarmScheduler.rescheduleAll(context, schedules, masterEnabled)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error handling alarm broadcast", e)
+                Timber.tag(TAG).e(e, "Error handling alarm broadcast")
             } finally {
                 pendingResult.finish()
             }

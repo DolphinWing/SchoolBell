@@ -16,7 +16,6 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import dolphin.android.apps.schoolbell.MainActivity
@@ -26,6 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class BellRingService : Service() {
 
@@ -40,26 +40,25 @@ class BellRingService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.IO)
     private val handler = Handler(Looper.getMainLooper())
     private val autoStopRunnable = Runnable {
-        Log.d(TAG, "Auto-stop timeout reached. Silencing.")
+        Timber.tag(TAG).i("Auto-stop timeout reached. Silencing.")
         stopSelf()
     }
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "Service onCreate")
+        Timber.tag(TAG).d("Service onCreate")
         createNotificationChannel()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "Service onStartCommand action=${intent?.action}")
+        Timber.tag(TAG).d("Service onStartCommand action=${intent?.action}")
 
         if (intent?.action == ACTION_STOP) {
-            Log.d(TAG, "Stop action received. Stopping service.")
+            Timber.tag(TAG).i("Stop action received. Stopping service.")
             stopSelf()
             return START_NOT_STICKY
         }
 
-        val scheduleId = intent?.getIntExtra("SCHEDULE_ID", -1) ?: -1
         val label = intent?.getStringExtra("SCHEDULE_LABEL") ?: "School Bell"
 
         // Build notification
@@ -121,9 +120,9 @@ class BellRingService : Service() {
                 prepare()
                 start()
             }
-            Log.d(TAG, "MediaPlayer playing successfully (custom=$useCustom)")
+            Timber.tag(TAG).i("MediaPlayer playing successfully (custom=$useCustom)")
         } catch (e: Exception) {
-            Log.e(TAG, "Error playing sound", e)
+            Timber.tag(TAG).e(e, "Error playing sound")
         }
     }
 
@@ -136,7 +135,7 @@ class BellRingService : Service() {
                 it.release()
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error stopping/releasing MediaPlayer", e)
+            Timber.tag(TAG).e(e, "Error stopping/releasing MediaPlayer")
         } finally {
             mediaPlayer = null
         }
@@ -162,7 +161,7 @@ class BellRingService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setSmallIcon(R.drawable.ic_bell)
             .setContentTitle("School Bell Active!")
             .setContentText(label)
             .setSubText("Class schedule alert")
@@ -200,7 +199,7 @@ class BellRingService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "Service onDestroy")
+        Timber.tag(TAG).d("Service onDestroy")
         handler.removeCallbacks(autoStopRunnable)
         stopSound()
     }

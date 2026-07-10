@@ -7,7 +7,7 @@ SchoolBell is a modern Android application for scheduling and triggering school 
 - **Architecture**: MVVM with reactive data flows.
 - **UI Framework**: Jetpack Compose (Material Design 3, Edge-to-Edge).
     - **Theme**: Vibrant "Electric Blue & Sunset Orange" energetic color scheme.
-    - **Visual Identity**: Adaptive App Icon with a jaunty bell (rotated -15 degrees) centered in the 66% safe zone.
+    - **Visual Identity**: Adaptive App Icon with a jaunty bell (rotated -18 degrees) centered in the 66% safe zone.
     - **🎨 Semantic Design Logic**:
         - **鬧鐘總開關 (Master Switch)**: 關閉時使用 `Error` 色系 (紅色)，對使用者發出「全系統靜音」的警示訊號。
         - **響鈴模式 (Ringtone Mode)**: 維持 `Secondary` 色系，代表這是一項使用者偏好設定而非系統警急狀態。
@@ -16,6 +16,7 @@ SchoolBell is a modern Android application for scheduling and triggering school 
 - **Adaptive Layout**: **Material 3 Adaptive** (List-Detail Pane Scaffold).
 - **Database**: Room (Schedule items storage).
 - **Persistence**: Preferences DataStore (Global master switch and Ringtone selection).
+- **Backup**: Configured via `data_extraction_rules.xml` and `backup_rules.xml`. Explicitly includes Room database and DataStore files for Cloud and D2D transfer.
 - **Scheduling**: `AlarmManager` with precise triggers.
 - **Background Operations**: Foreground Service (`mediaPlayback` type) for audio and notifications. Supports switching between custom "School Bell" and system alarm sounds.
 
@@ -61,6 +62,7 @@ A detailed `ROADMAP.md` is available in the project root, outlining planned enha
 - `dolphin.android.apps.schoolbell.data`: Room entities, DAO, Database, and `SettingsRepository`.
 - `dolphin.android.apps.schoolbell.service`: `AlarmScheduler`, `AlarmReceiver`, and `BellRingService`.
 - `dolphin.android.apps.schoolbell.ui`: Compose Screens (`MainScreen`, `EditScheduleScreen`) and Material 3 Theme.
+- `store_assets/`: Marketing materials, store listing copy, and image specifications for Google Play Console.
 
 ## 🛠️ Current Development State
 - **Status**: MVP Completed.
