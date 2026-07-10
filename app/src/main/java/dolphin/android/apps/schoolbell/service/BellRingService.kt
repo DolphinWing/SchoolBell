@@ -1,5 +1,6 @@
 package dolphin.android.apps.schoolbell.service
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -82,10 +83,6 @@ class BellRingService : Service() {
             playSound(useCustom)
         }
 
-        // Auto-stop after 15 seconds to prevent continuous ringing
-        handler.removeCallbacks(autoStopRunnable)
-        handler.postDelayed(autoStopRunnable, 15000)
-
         return START_NOT_STICKY
     }
 
@@ -115,14 +112,45 @@ class BellRingService : Service() {
                         .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                         .build()
                 )
-                isLooping = true
+                isLooping = !useCustom // Loop only system alarm, custom bell plays once
                 setWakeMode(this@BellRingService, PowerManager.PARTIAL_WAKE_LOCK)
                 prepare()
                 start()
+
+                if (useCustom) {
+                    setOnCompletionListener {
+                        Timber.tag(TAG).d("Playback completed. Stopping service.")
+                        stopSelf()
+                    }
+                }
             }
-            Timber.tag(TAG).i("MediaPlayer playing successfully (custom=$useCustom)")
+
+            val duration = try {
+                mediaPlayer?.duration ?: -1
+            } catch (e: Exception) {
+                -1
+            }
+
+            val watchdogDelay = if (useCustom && duration > 0) {
+                duration.toLong() + 2000L // Track duration + 2s buffer
+            } else {
+                15000L // 15s standard fallback
+            }
+
+            // Schedule auto-stop watchdog on Main thread
+            handler.post {
+                handler.removeCallbacks(autoStopRunnable)
+                handler.postDelayed(autoStopRunnable, watchdogDelay)
+            }
+
+            Timber.tag(TAG).i("MediaPlayer playing successfully (custom=$useCustom, watchdog=${watchdogDelay}ms)")
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error playing sound")
+            // If error, stop service quickly
+            handler.post {
+                handler.removeCallbacks(autoStopRunnable)
+                handler.postDelayed(autoStopRunnable, 2000L)
+            }
         }
     }
 
@@ -141,6 +169,7 @@ class BellRingService : Service() {
         }
     }
 
+    @SuppressLint("FullScreenIntentPolicy")
     private fun buildNotification(label: String): Notification {
         val stopIntent = Intent(this, BellRingService::class.java).apply {
             action = ACTION_STOP
@@ -162,9 +191,9 @@ class BellRingService : Service() {
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_bell)
-            .setContentTitle("School Bell Active!")
+            .setContentTitle(getString(R.string.notif_title))
             .setContentText(label)
-            .setSubText("Class schedule alert")
+            .setSubText(getString(R.string.notif_desc))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -174,7 +203,7 @@ class BellRingService : Service() {
             .setContentIntent(contentPendingIntent)
             .addAction(
                 android.R.drawable.ic_menu_close_clear_cancel,
-                "STOP",
+                getString(R.string.notif_stop),
                 stopPendingIntent
             )
             .build()
@@ -184,10 +213,10 @@ class BellRingService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "School Bell Ringing",
+                getString(R.string.notif_channel_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Channel used for playing school bell ring alarms"
+                description = getString(R.string.notif_channel_desc)
                 enableVibration(true)
                 setBypassDnd(true)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC

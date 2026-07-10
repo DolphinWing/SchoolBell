@@ -1,0 +1,76 @@
+<resources>
+    <string name="app_name">活力課表</string>
+    <string name="app_version">版本 %1$s</string>
+
+    <!-- Main Screen -->
+    <string name="main_title">課表鈴聲</string>
+    <string name="main_empty_list">尚未新增任何鐘聲。\n點擊 + 開始建立。</string>
+    <string name="main_add_schedule">新增鐘聲</string>
+    <string name="main_delete">刪除</string>
+    <string name="main_test_ringing">測試鈴聲</string>
+
+    <!-- Global Settings Card -->
+    <string name="settings_master_switch">鬧鐘總開關</string>
+    <string name="settings_enabled">已啟用</string>
+    <string name="settings_disabled">已停用</string>
+    <string name="settings_ringtone_mode">響鈴模式</string>
+    <string name="settings_campus_bell">校園鐘聲</string>
+    <string name="settings_system_alarm">系統鬧鐘</string>
+    <string name="settings_title">全域設定</string>
+    <string name="settings_summary_campus">已啟用 • 校園鐘聲</string>
+    <string name="settings_summary_system">已啟用 • 系統鬧鐘</string>
+    <string name="settings_summary_disabled">⚠️ 所有鐘聲已暫停</string>
+
+    <!-- Permissions Card -->
+    <string name="perm_title">權限要求</string>
+    <string name="perm_notification_desc">請開啟通知權限以確保鈴聲能正常顯示通知。</string>
+    <string name="perm_notification_btn">開啟通知權限</string>
+    <string name="perm_exact_alarm_desc">請允許精確鬧鐘權限，以確保鈴聲能在正確的時間響起。</string>
+    <string name="perm_exact_alarm_btn">開啟精確鬧鐘權限</string>
+
+    <!-- Battery Optimization Warning -->
+    <string name="battery_warning_snackbar_message">為了確保鐘聲準確響起，需要調整電池最佳化設定。</string>
+    <string name="battery_warning_snackbar_action">查看</string>
+    <string name="battery_dialog_title">電池最佳化設定</string>
+    <string name="battery_dialog_desc">Android 系統在休眠（Doze mode）時會延遲或阻擋鬧鐘。請在系統設定中將「活力課表」設定為「不受限制」。</string>
+    <string name="battery_dialog_never_show">永遠不再提示</string>
+    <string name="battery_dialog_settings_btn">前往設定</string>
+    <string name="battery_dialog_cancel_btn">取消</string>
+
+    <!-- Edit Schedule Screen -->
+    <string name="edit_title_add">新增鐘聲</string>
+    <string name="edit_title_edit">編輯鐘聲</string>
+    <string name="edit_label_hint">名稱</string>
+    <string name="edit_set_time">設定時間</string>
+    <string name="edit_repeat">重複週期</string>
+    <string name="edit_save">儲存</string>
+    <string name="edit_update">更新</string>
+    <string name="edit_cancel">取消</string>
+    <string name="edit_confirm">確定</string>
+    <string name="edit_select_time_title">選擇響鈴時間</string>
+
+    <!-- Notifications -->
+    <string name="notif_title">鐘聲響起！</string>
+    <string name="notif_desc">課表提醒</string>
+    <string name="notif_stop">停止</string>
+    <string name="notif_channel_name">課表鈴聲響鈴</string>
+    <string name="notif_channel_desc">用於播放課表鈴聲鬧鐘的頻道</string>
+
+    <!-- Days of Week -->
+    <string name="day_mon">週一</string>
+    <string name="day_tue">週二</string>
+    <string name="day_wed">週三</string>
+    <string name="day_thu">週四</string>
+    <string name="day_fri">週五</string>
+    <string name="day_sat">週六</string>
+    <string name="day_sun">週日</string>
+
+    <!-- Short Day Labels -->
+    <string name="day_s_mon">一</string>
+    <string name="day_s_tue">二</string>
+    <string name="day_s_wed">三</string>
+    <string name="day_s_thu">四</string>
+    <string name="day_s_fri">五</string>
+    <string name="day_s_sat">六</string>
+    <string name="day_s_sun">日</string>
+</resources>

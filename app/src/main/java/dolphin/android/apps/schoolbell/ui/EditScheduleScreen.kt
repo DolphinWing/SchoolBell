@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,10 +37,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dolphin.android.apps.schoolbell.R
 import dolphin.android.apps.schoolbell.ui.theme.SchoolBellTheme
 import java.util.Locale
 
@@ -59,7 +61,7 @@ fun TimePickerDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "Select Ring Time",
+                    stringResource(R.string.edit_select_time_title),
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(bottom = 20.dp)
                 )
@@ -70,8 +72,8 @@ fun TimePickerDialog(
                         .padding(top = 20.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
-                    TextButton(onClick = onConfirm) { Text("Confirm") }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.edit_cancel)) }
+                    TextButton(onClick = onConfirm) { Text(stringResource(R.string.edit_confirm)) }
                 }
             }
         }
@@ -82,7 +84,7 @@ fun TimePickerDialog(
 fun EditScheduleScreen(
     scheduleId: Int?,
     onDismiss: () -> Unit,
-    viewModel: MainViewModel = viewModel()
+    viewModel: MainViewModel = viewModel(factory = MainViewModel.Factory)
 ) {
     val schedules by viewModel.schedules.collectAsState()
     val schedule = remember(scheduleId, schedules) {
@@ -137,10 +139,13 @@ fun EditScheduleContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (scheduleId == null) "Add Schedule" else "Edit Schedule") },
+                title = { Text(if (scheduleId == null) stringResource(R.string.edit_title_add) else stringResource(R.string.edit_title_edit)) },
                 navigationIcon = {
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.Filled.ArrowBackIosNew,
+                            contentDescription = stringResource(R.string.edit_cancel)
+                        )
                     }
                 }
             )
@@ -156,7 +161,7 @@ fun EditScheduleContent(
             OutlinedTextField(
                 value = label,
                 onValueChange = { label = it },
-                label = { Text("Label") },
+                label = { Text(stringResource(R.string.edit_label_hint)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -182,7 +187,7 @@ fun EditScheduleContent(
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f)
                     )
-                    Text("Set Time", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.edit_set_time), style = MaterialTheme.typography.labelLarge)
                 }
             }
 
@@ -195,7 +200,7 @@ fun EditScheduleContent(
                 }
             }
 
-            Text("Repeat", style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(R.string.edit_repeat), style = MaterialTheme.typography.titleSmall)
             DaysOfWeekSelector(
                 selectedDays = selectedDays,
                 onToggleDay = { day ->
@@ -216,7 +221,7 @@ fun EditScheduleContent(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(if (scheduleId == null) "Save" else "Update")
+                Text(if (scheduleId == null) stringResource(R.string.edit_save) else stringResource(R.string.edit_update))
             }
         }
     }
@@ -228,7 +233,15 @@ fun DaysOfWeekSelector(
     onToggleDay: (Int) -> Unit
 ) {
     val days = listOf(7, 1, 2, 3, 4, 5, 6)
-    val dayLabels = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+    val dayLabels = listOf(
+        stringResource(R.string.day_s_sun),
+        stringResource(R.string.day_s_mon),
+        stringResource(R.string.day_s_tue),
+        stringResource(R.string.day_s_wed),
+        stringResource(R.string.day_s_thu),
+        stringResource(R.string.day_s_fri),
+        stringResource(R.string.day_s_sat)
+    )
 
     Row(
         modifier = Modifier.fillMaxWidth(),

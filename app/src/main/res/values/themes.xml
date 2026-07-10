@@ -1,4 +1,4 @@
 <resources>
 
-    <style name="Theme.SchoolBell" parent="Theme.MaterialComponents.Light" />
+    <style name="Theme.SchoolBell" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

@@ -1,3 +1,76 @@
 <resources>
     <string name="app_name">SchoolBell</string>
+    <string name="app_version">Version %1$s</string>
+
+    <!-- Main Screen -->
+    <string name="main_title">School Bell</string>
+    <string name="main_empty_list">No schedules added yet.\nTap + to start.</string>
+    <string name="main_add_schedule">Add Schedule</string>
+    <string name="main_delete">Delete</string>
+    <string name="main_test_ringing">Test Ringing</string>
+
+    <!-- Global Settings Card -->
+    <string name="settings_master_switch">Master Switch</string>
+    <string name="settings_enabled">Enabled</string>
+    <string name="settings_disabled">Disabled</string>
+    <string name="settings_ringtone_mode">Ringtone Mode</string>
+    <string name="settings_campus_bell">Campus Bell</string>
+    <string name="settings_system_alarm">System Alarm</string>
+    <string name="settings_title">Global Settings</string>
+    <string name="settings_summary_campus">Campus Bell • Enabled</string>
+    <string name="settings_summary_system">System Alarm • Enabled</string>
+    <string name="settings_summary_disabled">All alarms paused</string>
+
+    <!-- Permissions Card -->
+    <string name="perm_title">Permissions Required</string>
+    <string name="perm_notification_desc">Please enable notification permissions to ensure the bell displays correctly.</string>
+    <string name="perm_notification_btn">Enable Notifications</string>
+    <string name="perm_exact_alarm_desc">Please allow exact alarm permissions to ensure the bell rings on time.</string>
+    <string name="perm_exact_alarm_btn">Enable Exact Alarms</string>
+
+    <!-- Battery Optimization Warning -->
+    <string name="battery_warning_snackbar_message">To ensure the bell rings on time, battery optimization settings need optimization.</string>
+    <string name="battery_warning_snackbar_action">View</string>
+    <string name="battery_dialog_title">Battery Optimization</string>
+    <string name="battery_dialog_desc">Android system will delay or block alarms under Doze mode. Please set the battery usage of SchoolBell to \"Unrestricted\" in the system settings.</string>
+    <string name="battery_dialog_never_show">Never show again</string>
+    <string name="battery_dialog_settings_btn">Go to Settings</string>
+    <string name="battery_dialog_cancel_btn">Cancel</string>
+
+    <!-- Edit Schedule Screen -->
+    <string name="edit_title_add">Add Schedule</string>
+    <string name="edit_title_edit">Edit Schedule</string>
+    <string name="edit_label_hint">Label</string>
+    <string name="edit_set_time">Set Time</string>
+    <string name="edit_repeat">Repeat</string>
+    <string name="edit_save">Save</string>
+    <string name="edit_update">Update</string>
+    <string name="edit_cancel">Cancel</string>
+    <string name="edit_confirm">Confirm</string>
+    <string name="edit_select_time_title">Select Ring Time</string>
+
+    <!-- Notifications -->
+    <string name="notif_title">School Bell Active!</string>
+    <string name="notif_desc">Class schedule alert</string>
+    <string name="notif_stop">STOP</string>
+    <string name="notif_channel_name">School Bell Ringing</string>
+    <string name="notif_channel_desc">Channel used for playing school bell ring alarms</string>
+
+    <!-- Days of Week -->
+    <string name="day_mon">Mon</string>
+    <string name="day_tue">Tue</string>
+    <string name="day_wed">Wed</string>
+    <string name="day_thu">Thu</string>
+    <string name="day_fri">Fri</string>
+    <string name="day_sat">Sat</string>
+    <string name="day_sun">Sun</string>
+
+    <!-- Short Day Labels -->
+    <string name="day_s_mon">M</string>
+    <string name="day_s_tue">T</string>
+    <string name="day_s_wed">W</string>
+    <string name="day_s_thu">T</string>
+    <string name="day_s_fri">F</string>
+    <string name="day_s_sat">S</string>
+    <string name="day_s_sun">S</string>
 </resources>
