@@ -1,7 +1,10 @@
 package dolphin.android.apps.schoolbell.ui
 
+import android.app.AlarmManager
 import android.app.Application
 import android.app.backup.BackupManager
+import android.content.Context
+import android.os.PowerManager
 import dolphin.android.apps.schoolbell.data.ScheduleDao
 import dolphin.android.apps.schoolbell.data.SettingsRepository
 import dolphin.android.apps.schoolbell.service.AlarmScheduler
@@ -22,12 +25,19 @@ class MainViewModelTest {
     private val settingsRepository = mockk<SettingsRepository>(relaxed = true)
     private val backupManager = mockk<BackupManager>(relaxed = true)
     
+    private val mockAlarmManager = mockk<AlarmManager>(relaxed = true)
+    private val mockPowerManager = mockk<PowerManager>(relaxed = true)
+    
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         mockkObject(AlarmScheduler)
+        
+        // Stub system services to avoid ClassCastException
+        every { application.getSystemService(Context.ALARM_SERVICE) } returns mockAlarmManager
+        every { application.getSystemService(Context.POWER_SERVICE) } returns mockPowerManager
         
         // Default mocks
         every { scheduleDao.getAllSchedulesFlow() } returns flowOf(emptyList())

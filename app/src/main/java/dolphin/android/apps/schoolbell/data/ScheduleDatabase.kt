@@ -20,7 +20,7 @@ abstract class ScheduleDatabase : RoomDatabase() {
                     ScheduleDatabase::class.java,
                     "school_bell_database"
                 )
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration(dropAllTables = true)
                     .build()
                 INSTANCE = instance
                 instance
