@@ -50,6 +50,7 @@
     <string name="edit_cancel">取消</string>
     <string name="edit_confirm">確定</string>
     <string name="edit_select_time_title">選擇響鈴時間</string>
+    <string name="edit_conflict_error">此響鈴時間與現有設定衝突。</string>
 
     <!-- Notifications -->
     <string name="notif_title">鐘聲響起！</string>

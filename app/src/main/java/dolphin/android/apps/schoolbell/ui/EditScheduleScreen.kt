@@ -8,8 +8,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.Button
@@ -37,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -97,6 +102,15 @@ fun EditScheduleScreen(
         initialHour = schedule?.hour ?: 8,
         initialMinute = schedule?.minute ?: 0,
         daysOfWeek = schedule?.daysOfWeek ?: "1,2,3,4,5",
+        onCheckConflict = { hour, minute, days ->
+            dolphin.android.apps.schoolbell.data.ScheduleValidator.hasConflict(
+                hour = hour,
+                minute = minute,
+                daysString = days,
+                existingSchedules = schedules,
+                excludeId = scheduleId
+            )
+        },
         onSave = { hour, minute, label, days ->
             if (schedule == null) {
                 viewModel.addSchedule(hour, minute, label, days)
@@ -117,10 +131,13 @@ fun EditScheduleContent(
     initialHour: Int,
     initialMinute: Int,
     daysOfWeek: String,
+    onCheckConflict: (hour: Int, minute: Int, days: String) -> Boolean,
     onSave: (hour: Int, minute: Int, label: String, days: String) -> Unit,
     onDismiss: () -> Unit
 ) {
     var label by remember(initialLabel) { mutableStateOf(initialLabel) }
+    val focusManager = LocalFocusManager.current
+    var hasConflictError by remember { mutableStateOf(false) }
 
     // Manage days of week selection state
     val initialDaysSet = remember(daysOfWeek) {
@@ -141,7 +158,10 @@ fun EditScheduleContent(
             TopAppBar(
                 title = { Text(if (scheduleId == null) stringResource(R.string.edit_title_add) else stringResource(R.string.edit_title_edit)) },
                 navigationIcon = {
-                    IconButton(onClick = onDismiss) {
+                    IconButton(onClick = {
+                        focusManager.clearFocus()
+                        onDismiss()
+                    }) {
                         Icon(
                             Icons.Filled.ArrowBackIosNew,
                             contentDescription = stringResource(R.string.edit_cancel)
@@ -155,69 +175,96 @@ fun EditScheduleContent(
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(16.dp)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .imePadding(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            OutlinedTextField(
-                value = label,
-                onValueChange = { label = it },
-                label = { Text(stringResource(R.string.edit_label_hint)) },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            var showTimePicker by remember { mutableStateOf(false) }
-
-            OutlinedCard(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showTimePicker = true }
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = String.format(
-                            Locale.getDefault(),
-                            "%02d:%02d",
-                            timePickerState.hour,
-                            timePickerState.minute
-                        ),
-                        style = MaterialTheme.typography.displayMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(stringResource(R.string.edit_set_time), style = MaterialTheme.typography.labelLarge)
-                }
-            }
+                OutlinedTextField(
+                    value = label,
+                    onValueChange = { label = it },
+                    label = { Text(stringResource(R.string.edit_label_hint)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            if (showTimePicker) {
-                TimePickerDialog(
-                    onDismiss = { showTimePicker = false },
-                    onConfirm = { showTimePicker = false }
-                ) {
-                    TimePicker(state = timePickerState)
-                }
-            }
+                var showTimePicker by remember { mutableStateOf(false) }
 
-            Text(stringResource(R.string.edit_repeat), style = MaterialTheme.typography.titleSmall)
-            DaysOfWeekSelector(
-                selectedDays = selectedDays,
-                onToggleDay = { day ->
-                    selectedDays = if (selectedDays.contains(day)) {
-                        selectedDays - day
-                    } else {
-                        selectedDays + day
+                OutlinedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            focusManager.clearFocus()
+                            showTimePicker = true
+                        }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = String.format(
+                                Locale.getDefault(),
+                                "%02d:%02d",
+                                timePickerState.hour,
+                                timePickerState.minute
+                            ),
+                            style = MaterialTheme.typography.displayMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(stringResource(R.string.edit_set_time), style = MaterialTheme.typography.labelLarge)
                     }
                 }
-            )
 
-            Spacer(modifier = Modifier.weight(1f))
+                if (showTimePicker) {
+                    TimePickerDialog(
+                        onDismiss = { showTimePicker = false },
+                        onConfirm = { showTimePicker = false }
+                    ) {
+                        TimePicker(state = timePickerState)
+                    }
+                }
+
+                if (hasConflictError) {
+                    Text(
+                        text = stringResource(R.string.edit_conflict_error),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
+
+                Text(stringResource(R.string.edit_repeat), style = MaterialTheme.typography.titleSmall)
+                DaysOfWeekSelector(
+                    selectedDays = selectedDays,
+                    onToggleDay = { day ->
+                        selectedDays = if (selectedDays.contains(day)) {
+                            selectedDays - day
+                        } else {
+                            selectedDays + day
+                        }
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
+                    focusManager.clearFocus()
                     val daysString = selectedDays.toList().sorted().joinToString(",")
-                    onSave(timePickerState.hour, timePickerState.minute, label, daysString)
+                    val isConflicting = onCheckConflict(timePickerState.hour, timePickerState.minute, daysString)
+                    if (isConflicting) {
+                        hasConflictError = true
+                    } else {
+                        hasConflictError = false
+                        onSave(timePickerState.hour, timePickerState.minute, label, daysString)
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -275,6 +322,7 @@ fun EditScheduleScreenPreview() {
             initialHour = 12,
             initialMinute = 30,
             daysOfWeek = "1,2,3,4,5",
+            onCheckConflict = { _, _, _ -> false },
             onSave = { _, _, _, _ -> },
             onDismiss = {}
         )
@@ -291,6 +339,7 @@ fun EditScheduleScreenDarkPreview() {
             initialHour = 12,
             initialMinute = 30,
             daysOfWeek = "1,2,3,4,5",
+            onCheckConflict = { _, _, _ -> false },
             onSave = { _, _, _, _ -> },
             onDismiss = {}
         )

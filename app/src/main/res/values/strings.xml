@@ -50,6 +50,7 @@
     <string name="edit_cancel">Cancel</string>
     <string name="edit_confirm">Confirm</string>
     <string name="edit_select_time_title">Select Ring Time</string>
+    <string name="edit_conflict_error">This time overlaps with an existing alarm.</string>
 
     <!-- Notifications -->
     <string name="notif_title">School Bell Active!</string>

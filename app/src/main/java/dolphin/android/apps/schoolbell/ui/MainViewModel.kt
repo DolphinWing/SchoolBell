@@ -34,7 +34,8 @@ class MainViewModel(
     application: Application,
     private val scheduleDao: ScheduleDao,
     private val settingsRepository: SettingsRepository,
-    private val backupManager: BackupManager
+    private val backupManager: BackupManager,
+    private val systemFeatureChecker: SystemFeatureChecker = SystemFeatureChecker(application)
 ) : AndroidViewModel(application) {
 
     private val _permissionsState = MutableStateFlow(PermissionsState())
@@ -78,22 +79,8 @@ class MainViewModel(
     }
 
     fun checkPermissions(checkBattery: Boolean = true) {
-        val context = getApplication<Application>()
-        val hasNotifications = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            true
-        }
-
-        val canExact = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            alarmManager.canScheduleExactAlarms()
-        } else {
-            true
-        }
+        val hasNotifications = systemFeatureChecker.hasNotificationPermission()
+        val canExact = systemFeatureChecker.canScheduleExactAlarms()
 
         _permissionsState.value = PermissionsState(hasNotifications, canExact)
 
@@ -104,13 +91,7 @@ class MainViewModel(
 
     fun checkBatteryOptimizationWarning() {
         viewModelScope.launch {
-            val context = getApplication<Application>()
-            val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-            val isIgnoring = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                powerManager.isIgnoringBatteryOptimizations(context.packageName)
-            } else {
-                true
-            }
+            val isIgnoring = systemFeatureChecker.isIgnoringBatteryOptimizations()
             val ignoreWarning = settingsRepository.ignoreBatteryWarningFlow.first()
             _showBatteryWarningSnackbar.value = !isIgnoring && !ignoreWarning
         }
@@ -129,15 +110,7 @@ class MainViewModel(
     fun insertMockSchedules() {
         if (!BuildConfig.DEBUG) return
         viewModelScope.launch {
-            val mocks = listOf(
-                Schedule(hour = 9, minute = 0, label = "Good morning, Work.", isActive = true, daysOfWeek = "1,2,3,4,5"),
-                Schedule(hour = 11, minute = 50, label = "Time to lunch, dear.", isActive = true, daysOfWeek = "1,2,3,4,5"),
-                Schedule(hour = 12, minute = 50, label = "Time to work, guys.", isActive = true, daysOfWeek = "1,2,3,4,5"),
-                Schedule(hour = 15, minute = 30, label = "Afternoon break", isActive = true, daysOfWeek = "1,2,3,4,5"),
-                Schedule(hour = 15, minute = 50, label = "Time to get back to work.", isActive = true, daysOfWeek = "1,2,3,4,5"),
-                Schedule(hour = 18, minute = 0, label = "Time to leave, dude.", isActive = true, daysOfWeek = "1,2,3,4,5"),
-                Schedule(hour = 20, minute = 0, label = "It's too late.", isActive = true, daysOfWeek = "1,2,3,4,5")
-            )
+            val mocks = dolphin.android.apps.schoolbell.data.MockDataHelper.getMockSchedules()
             mocks.forEach { schedule ->
                 val id = scheduleDao.insert(schedule)
                 val inserted = schedule.copy(id = id.toInt())
