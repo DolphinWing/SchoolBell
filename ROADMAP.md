@@ -23,6 +23,14 @@
 - [x] **語系資源化 (String Externalization)**：將專案中目前 Hard-coded 的英文標籤遷移至 `res/values/strings.xml`，並補齊繁體中文翻譯。
 - [x] **App Language 支援 (Android 13+)**：實作 Per-app language preferences，讓使用者在系統設定或 App 內切換語系。
 
+### Phase 1.5: 開發者工具與實機排障 (Developer Tools & Diagnostics)
+重點在於提供開發者與進階用戶實機調試、資料庫快速建置與 Alarm 狀態診斷工具。
+- [x] **測試響鈴公開化**：將「測試響鈴」功能移出 Debug Build 限制，改為 `GlobalSettingsCard` 下方的公開功能。
+- [x] **開發者模式與入口**：實作在版本號上連點 10 次解鎖「Developer Tools Dialog」的防呆機制。
+- [x] **一鍵清空資料庫**：在 Developer Tools 中提供一鍵刪除所有鬧鐘資料的捷徑。
+- [x] **系統 Alarm 排程檢測 (Next Trigger Time)**：在 Developer Tools 中列出目前已向系統 `AlarmManager` 註冊的 Active 鬧鐘，並顯示其下一次預期觸發的精確時間戳。
+- [x] **強制停止播放服務 (Force Silent)**：在 Developer Tools 中提供強制呼叫 `stopService()` 釋放 `MediaPlayer` 的功能。
+
 ### Phase 2: 使用者體驗優化 (UX Refinement)
 重點在於強化 UI 的直覺性與操作流暢度。
 - [ ] **清單操作優化 (Swipe-to-Dismiss)**：在 `LazyColumn` 列表項目中實作 Material 3 的滑動刪除手勢。

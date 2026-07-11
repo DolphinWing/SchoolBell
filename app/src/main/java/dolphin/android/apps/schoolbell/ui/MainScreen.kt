@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BugReport
@@ -34,6 +35,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -148,6 +150,19 @@ fun MainScreen(
         )
     }
 
+    var developerClickCount by remember { mutableStateOf(0) }
+    var lastClickTime by remember { mutableStateOf(0L) }
+    var showDevDialog by remember { mutableStateOf(false) }
+
+    if (showDevDialog) {
+        DeveloperToolsDialog(
+            onDismiss = { showDevDialog = false },
+            onAddMockSchedules = { viewModel.insertMockSchedules() },
+            onClearAllSchedules = { viewModel.clearAllSchedules() },
+            getDiagnostics = { viewModel.getDiagnosticsInfo() }
+        )
+    }
+
     MainContent(
         schedules = schedules,
         masterEnabled = masterEnabled,
@@ -162,6 +177,20 @@ fun MainScreen(
         onDeleteSchedule = { viewModel.deleteSchedule(it) },
         onTestBell = onTestBell,
         onAddMockSchedules = { viewModel.insertMockSchedules() },
+        onVersionClick = {
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastClickTime < 2000) {
+                developerClickCount++
+            } else {
+                developerClickCount = 1
+            }
+            lastClickTime = currentTime
+
+            if (developerClickCount >= 10) {
+                developerClickCount = 0
+                showDevDialog = true
+            }
+        },
         onRequestNotification = {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -242,6 +271,7 @@ fun MainContent(
     onDeleteSchedule: (Schedule) -> Unit,
     onTestBell: () -> Unit,
     onAddMockSchedules: () -> Unit,
+    onVersionClick: () -> Unit,
     onRequestNotification: () -> Unit,
     onRequestExactAlarm: () -> Unit
 ) {
@@ -256,39 +286,12 @@ fun MainContent(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            FloatingActionButton(
+                onClick = onAdd,
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary
             ) {
-                if (BuildConfig.DEBUG) {
-                    Surface(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .combinedClickable(
-                                onClick = onTestBell,
-                                onLongClick = onAddMockSchedules
-                            ),
-                        shape = MaterialTheme.shapes.medium,
-                        color = MaterialTheme.colorScheme.tertiaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                        tonalElevation = 6.dp
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                Icons.Default.BugReport,
-                                contentDescription = stringResource(R.string.main_test_ringing)
-                            )
-                        }
-                    }
-                }
-
-                FloatingActionButton(
-                    onClick = onAdd,
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onSecondary
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.main_add_schedule))
-                }
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.main_add_schedule))
             }
         }
     )
@@ -312,7 +315,8 @@ fun MainContent(
                 masterEnabled = masterEnabled,
                 useCustomBell = useCustomBell,
                 onToggleMaster = onToggleMaster,
-                onToggleCustomBell = onToggleCustomBell
+                onToggleCustomBell = onToggleCustomBell,
+                onTestBell = onTestBell
             )
 
             Box(modifier = Modifier.weight(1f)) {
@@ -350,6 +354,12 @@ fun MainContent(
                 ) + if (BuildConfig.DEBUG) "-debug" else "",
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        onVersionClick()
+                    }
                     .padding(vertical = 16.dp),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 style = MaterialTheme.typography.labelSmall,
@@ -365,6 +375,7 @@ fun GlobalSettingsCard(
     useCustomBell: Boolean,
     onToggleMaster: (Boolean) -> Unit,
     onToggleCustomBell: (Boolean) -> Unit,
+    onTestBell: () -> Unit,
     initialExpanded: Boolean = false
 ) {
     var isExpanded by remember { mutableStateOf(initialExpanded) }
@@ -504,6 +515,41 @@ fun GlobalSettingsCard(
                             )
                         }
                     )
+                }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    color = if (masterEnabled)
+                        MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                    else
+                        MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.1f)
+                )
+
+                // Row 3: Test Alarm
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onTestBell() },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = null,
+                        tint = if (masterEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.settings_test_alarm),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = if (masterEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Text(
+                            stringResource(R.string.settings_test_alarm_summary),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (masterEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+                        )
+                    }
                 }
             }
         }
@@ -664,6 +710,7 @@ fun MainScreenPreview() {
             onDeleteSchedule = {},
             onTestBell = {},
             onAddMockSchedules = {},
+            onVersionClick = {},
             onRequestNotification = {},
             onRequestExactAlarm = {}
         )
@@ -691,6 +738,7 @@ fun MainScreenDarkPreview() {
             onDeleteSchedule = {},
             onTestBell = {},
             onAddMockSchedules = {},
+            onVersionClick = {},
             onRequestNotification = {},
             onRequestExactAlarm = {}
         )
@@ -706,7 +754,8 @@ fun GlobalSettingsCardCollapsedPreview() {
                 masterEnabled = true,
                 useCustomBell = true,
                 onToggleMaster = {},
-                onToggleCustomBell = {}
+                onToggleCustomBell = {},
+                onTestBell = {}
             )
         }
     }
@@ -722,6 +771,7 @@ fun GlobalSettingsCardExpandedPreview() {
                 useCustomBell = true,
                 onToggleMaster = {},
                 onToggleCustomBell = {},
+                onTestBell = {},
                 initialExpanded = true
             )
         }
@@ -737,8 +787,140 @@ fun GlobalSettingsCardDisabledPreview() {
                 masterEnabled = false,
                 useCustomBell = true,
                 onToggleMaster = {},
-                onToggleCustomBell = {}
+                onToggleCustomBell = {},
+                onTestBell = {}
             )
         }
     }
+}
+
+@Composable
+fun DeveloperToolsDialog(
+    onDismiss: () -> Unit,
+    onAddMockSchedules: () -> Unit,
+    onClearAllSchedules: () -> Unit,
+    getDiagnostics: () -> List<String>
+) {
+    var diagnosticsList by remember { mutableStateOf(emptyList<String>()) }
+    val context = LocalContext.current
+
+    // Load diagnostics initially
+    LaunchedEffect(Unit) {
+        diagnosticsList = getDiagnostics()
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = "Developer Tools", fontWeight = FontWeight.Bold)
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Section 1: Actions
+                Text(text = "Actions", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TextButton(
+                        onClick = {
+                            onAddMockSchedules()
+                            diagnosticsList = getDiagnostics()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Add Mocks")
+                    }
+                    
+                    TextButton(
+                        onClick = {
+                            onClearAllSchedules()
+                            diagnosticsList = getDiagnostics()
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("Clear All")
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TextButton(
+                        onClick = {
+                            val label = "Developer Test Ringing"
+                            val intent = Intent(context, BellRingService::class.java).apply {
+                                putExtra("SCHEDULE_LABEL", label)
+                            }
+                            ContextCompat.startForegroundService(context, intent)
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Test Ring")
+                    }
+
+                    TextButton(
+                        onClick = {
+                            val intent = Intent(context, BellRingService::class.java).apply {
+                                action = BellRingService.ACTION_STOP
+                            }
+                            ContextCompat.startForegroundService(context, intent)
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("Force Silent")
+                    }
+                }
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
+
+                // Section 2: Diagnostics
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "Active Alarms Diagnostics", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                    IconButton(onClick = { diagnosticsList = getDiagnostics() }) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Refresh"
+                        )
+                    }
+                }
+                
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .alpha(0.8f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    items(diagnosticsList) { diagnostic ->
+                        Text(
+                            text = diagnostic,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close")
+            }
+        }
+    )
 }

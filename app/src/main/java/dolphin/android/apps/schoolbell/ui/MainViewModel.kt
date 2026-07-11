@@ -218,6 +218,32 @@ class MainViewModel(
         return schedules.value.find { it.id == id }
     }
 
+    fun clearAllSchedules() {
+        viewModelScope.launch {
+            schedules.value.forEach { schedule ->
+                AlarmScheduler.cancelAlarm(getApplication(), schedule)
+            }
+            scheduleDao.deleteAll()
+            backupManager.dataChanged()
+        }
+    }
+
+    fun getDiagnosticsInfo(): List<String> {
+        val activeSchedules = schedules.value.filter { it.isActive }
+        if (activeSchedules.isEmpty()) return listOf("No active alarms in database.")
+
+        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+        return activeSchedules.map { schedule ->
+            val triggerTime = AlarmScheduler.calculateNextTriggerTime(schedule)
+            if (triggerTime != null) {
+                val dateStr = dateFormat.format(java.util.Date(triggerTime))
+                "ID: ${schedule.id} | ${schedule.formattedTime()} | Next: $dateStr"
+            } else {
+                "ID: ${schedule.id} | ${schedule.formattedTime()} | Next: ERROR"
+            }
+        }
+    }
+
     /**
      * Factory for creating [MainViewModel] with custom dependencies.
      */

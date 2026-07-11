@@ -20,6 +20,8 @@
     <string name="settings_summary_campus">Campus Bell • Enabled</string>
     <string name="settings_summary_system">System Alarm • Enabled</string>
     <string name="settings_summary_disabled">All alarms paused</string>
+    <string name="settings_test_alarm">Test Alarm System</string>
+    <string name="settings_test_alarm_summary">Play a short ringtone &amp; show test notification</string>
 
     <!-- Permissions Card -->
     <string name="perm_title">Permissions Required</string>

@@ -25,4 +25,7 @@ interface ScheduleDao {
 
     @Query("SELECT * FROM schedules WHERE id = :id LIMIT 1")
     suspend fun getScheduleById(id: Int): Schedule?
+
+    @Query("DELETE FROM schedules")
+    suspend fun deleteAll()
 }

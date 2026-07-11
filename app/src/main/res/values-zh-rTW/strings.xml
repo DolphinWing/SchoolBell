@@ -20,6 +20,8 @@
     <string name="settings_summary_campus">已啟用 • 校園鐘聲</string>
     <string name="settings_summary_system">已啟用 • 系統鬧鐘</string>
     <string name="settings_summary_disabled">⚠️ 所有鐘聲已暫停</string>
+    <string name="settings_test_alarm">測試響鈴系統</string>
+    <string name="settings_test_alarm_summary">播放簡短的鈴聲並觸發測試通知</string>
 
     <!-- Permissions Card -->
     <string name="perm_title">權限要求</string>
