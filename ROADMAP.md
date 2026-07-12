@@ -33,6 +33,8 @@
 
 ### Phase 2: 使用者體驗優化 (UX Refinement)
 重點在於強化 UI 的直覺性與操作流暢度。
+- [x] **編輯頁面鍵盤遮擋與焦點優化**：重構 `EditScheduleScreen` 外層佈局引入 `imePadding` 與滾動支援，並在點擊時間卡片/儲存/返回時呼叫 `focusManager.clearFocus()` 優雅收起鍵盤。
+- [x] **時間衝突判定防呆與警告**：引入 `ScheduleValidator` 即時比對 `(Time, DaysOfWeek)` 交集衝突，於點擊儲存前攔截並在時間欄位下方顯示紅色錯誤警告。
 - [ ] **清單操作優化 (Swipe-to-Dismiss)**：在 `LazyColumn` 列表項目中實作 Material 3 的滑動刪除手勢。
 - [ ] **操作回饋系統**：實作標準 Snackbar 提示機制，提供「復原 (Undo)」按鈕防止誤刪。
 
@@ -41,7 +43,8 @@
 
 ### Phase 4: 數據洞察與維運 (Insights & Operations)
 - [ ] **Firebase Analytics & Crashlytics 整合**：追蹤核心功能使用數據並自動收集崩潰報告。
+  *   *隱私合規規範*：必須在 `AndroidManifest.xml` 中使用 `tools:node="remove"` 強制移除 `AD_ID` 權限。此做法能保留 100% 的 App 使用行為分析與 Crash 追蹤功能，同時完全避開 Google Play 廣告 ID 宣告政策與隱私合規審查。
 
 ---
 
-*Last Updated: 2024-07-10*
+*Last Updated: 2024-07-12*

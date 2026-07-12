@@ -1,7 +1,7 @@
 # SchoolBell - 活力課表鈴聲 App
 
 [![Android CI](https://github.com/DolphinWing/SchoolBell/actions/workflows/android-ci.yml/badge.svg)](https://github.com/DolphinWing/SchoolBell/actions/workflows/android-ci.yml)
-[![Publish](https://github.com/DolphinWing/SchoolBell/actions/workflows/internal-publish.yml/badge.svg)](https://github.com/DolphinWing/SchoolBell/actions/workflows/internal-publish.yml)
+[![Internal Publish](https://github.com/DolphinWing/SchoolBell/actions/workflows/internal-publish.yml/badge.svg)](https://github.com/DolphinWing/SchoolBell/actions/workflows/internal-publish.yml)
 [![Latest Tag](https://img.shields.io/github/v/tag/DolphinWing/SchoolBell?label=version&color=blue)](https://github.com/DolphinWing/SchoolBell/tags)
 
 SchoolBell 是一款專為校園環境設計的現代化鈴聲排程 App，採用最新的 Android 技術棧建構，提供精確、直覺且非干擾性的響鈴體驗。
