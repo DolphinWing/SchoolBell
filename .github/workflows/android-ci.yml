@@ -3,8 +3,24 @@ name: Android CI
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'app/**'
+      - 'gradle/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'app/**'
+      - 'gradle/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
 
 jobs:
   build:
@@ -30,3 +46,11 @@ jobs:
 
     - name: Build Debug APK
       run: ./gradlew assembleDebug --no-daemon
+
+    - name: Send Discord Notification
+      if: always()
+      uses: sarisia/actions-status-discord@v1
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        status: ${{ job.status }}
+        content: "SchoolBell Android CI Run"

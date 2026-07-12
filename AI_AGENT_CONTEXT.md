@@ -57,7 +57,8 @@ SchoolBell is a modern Android application for scheduling and triggering school 
 ## 🗺️ Future Roadmap
 A detailed `ROADMAP.md` is available in the project root, outlining planned enhancements for:
 - **Phase 0**: Testing & Quality Assurance (COMPLETED ✅).
-- **Phase 1**: Stability & Foundation (In Progress 🏗️ - Battery optimization, Language support).
+- **Phase 1**: Stability & Foundation (COMPLETED ✅ - Battery optimization, Language support).
+- **Phase 1.5**: Developer Tools & Diagnostics (COMPLETED ✅ - Test Ringing in settings, 7-clicks dev mode, database mock & clear, active alarms diagnostics).
 - **Phase 2**: UX Refinement (Swipe-to-dismiss & Snackbar feedback).
 - **Phase 3**: Advanced Features (Independent volume control).
 - **Phase 4**: Operations (Firebase Analytics & Crashlytics).
@@ -69,9 +70,9 @@ A detailed `ROADMAP.md` is available in the project root, outlining planned enha
 - `store_assets/`: Marketing materials, store listing copy, and image specifications for Google Play Console.
 
 ## 🛠️ Current Development State
-- **Status**: MVP Completed & Infrastructure Solidified.
-- **Features**: CRUD for schedules, Master switch, Background audio/notification, Adaptive UI, Custom ringtones, M3 TimePicker, Automated Testing, and Timber Logging.
-- **Verification**: Built and verified with `./gradlew assembleDebug`. Unit tests (`AlarmScheduler`, `MainViewModel`) and Instrumented tests (`ScheduleDao`) are passing. Ready for production deployment.
+- **Status**: Phase 1.5 Completed & Infrastructure Solidified.
+- **Features**: CRUD for schedules, Schedule conflict detection, Master switch, Background audio/notification, Adaptive UI, Custom ringtones, M3 TimePicker, Developer Tools (Add Mocks, Clear All, diagnostics list), Automated Testing, and Timber Logging.
+- **Verification**: Built and verified with `./gradlew assembleDebug`. Unit tests (`AlarmScheduler`, `MainViewModel`, `ScheduleValidator`) and Instrumented tests (`ScheduleDao`) are passing. Ready for production deployment.
 
 ## ⚠️ Important Implementation Details
 - **Android 14+ Compatibility**: Requires `SCHEDULE_EXACT_ALARM` or `USE_EXACT_ALARM`.
@@ -79,6 +80,25 @@ A detailed `ROADMAP.md` is available in the project root, outlining planned enha
 - **Edge-to-Edge**: Always use `WindowInsets` for padding in UI components. Base XML theme inherits from platform `android:Theme.Material.Light.NoActionBar` to avoid dependency on XML-based Material libraries.
 - **English-First Strings**: All hard-coded UI strings must use **English** only to prevent encoding issues during development. Localization to other languages (like Traditional Chinese) must be handled through `res/values/strings.xml` as planned in Phase 1 of the Roadmap.
 - **R8 / ProGuard Shrinking**: Enabled for release builds (`isMinifyEnabled = true`, `isShrinkResources = true`). Library-specific rules for Room and `kotlinx.serialization` are automatically resolved via consumer rules; custom overrides reside in `app/proguard-rules.pro`.
+
+## 🚀 CI/CD & Automated Publishing
+The project utilizes GitHub Actions for continuous integration and automated publishing to Google Play's **Internal Testing** track.
+
+### 📋 Required GitHub Secrets
+To fully enable the build and publishing pipeline, configure the following secrets in **GitHub -> Settings -> Secrets and variables -> Actions**:
+
+| Secret Name | Description | Value Format / How to Generate |
+| :--- | :--- | :--- |
+| `DISCORD_WEBHOOK` | Discord Webhook URL for build notifications | URL format: `https://discord.com/api/webhooks/...` |
+| `SERVICE_ACCOUNT_JSON` | Google Play Console API service account credentials | Complete JSON key string exported from GCP Console |
+| `RELEASE_SIGNING_KEY` | Release keystore file encoded in Base64 | Convert `.jks` to string:<br>• **Win (PWSH)**: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("release.jks"))`<br>• **macOS**: `openssl base64 -in release.jks -A` |
+| `RELEASE_KEY_ALIAS` | Alias name of the release signing key | Key alias plain text |
+| `RELEASE_KEYSTORE_PASSWORD` | Password for the keystore | Password plain text |
+| `RELEASE_KEY_PASSWORD` | Password for the specific key | Password plain text |
+
+### 🛠️ Workflows
+1. **Android CI** ([android-ci.yml](file:///.github/workflows/android-ci.yml)): Triggered on pushing code or PRs. Runs tests, compiles debug builds, and reports status to Discord.
+2. **Internal Publish** ([internal-publish.yml](file:///.github/workflows/internal-publish.yml)): Triggered by pushing tags (format `v*`). Builds a release AAB, signs it, uploads to Google Play Internal track, and reports results to Discord.
 
 ---
 *Maintained by Brigette Aurora.*
