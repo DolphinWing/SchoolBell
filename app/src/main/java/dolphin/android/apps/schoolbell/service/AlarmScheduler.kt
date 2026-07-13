@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import dolphin.android.apps.schoolbell.MainActivity
 import dolphin.android.apps.schoolbell.data.Schedule
 import timber.log.Timber
 import java.util.Calendar
@@ -76,14 +77,21 @@ object AlarmScheduler {
         )
 
         try {
+            val showIntent = Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            val showPendingIntent = PendingIntent.getActivity(
+                context,
+                schedule.id,
+                showIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            val alarmClockInfo = AlarmManager.AlarmClockInfo(triggerTime, showPendingIntent)
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (alarmManager.canScheduleExactAlarms()) {
-                    alarmManager.setExactAndAllowWhileIdle(
-                        AlarmManager.RTC_WAKEUP,
-                        triggerTime,
-                        pendingIntent
-                    )
-                    Timber.tag(TAG).d("Scheduled EXACT alarm for id=${schedule.id} (${schedule.label}) at $triggerTime")
+                    alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
+                    Timber.tag(TAG).d("Scheduled EXACT alarm clock for id=${schedule.id} (${schedule.label}) at $triggerTime")
                 } else {
                     alarmManager.setAndAllowWhileIdle(
                         AlarmManager.RTC_WAKEUP,
@@ -93,15 +101,11 @@ object AlarmScheduler {
                     Timber.tag(TAG).d("Scheduled INEXACT (fallback) alarm for id=${schedule.id} (${schedule.label}) at $triggerTime")
                 }
             } else {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerTime,
-                    pendingIntent
-                )
-                Timber.tag(TAG).d("Scheduled EXACT alarm (pre-S) for id=${schedule.id} (${schedule.label}) at $triggerTime")
+                alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
+                Timber.tag(TAG).d("Scheduled EXACT alarm clock (pre-S) for id=${schedule.id} (${schedule.label}) at $triggerTime")
             }
         } catch (e: SecurityException) {
-            Timber.tag(TAG).e(e, "SecurityException scheduling exact alarm for id=${schedule.id}")
+            Timber.tag(TAG).e(e, "SecurityException scheduling exact alarm clock for id=${schedule.id}")
             // Fallback to inexact
             alarmManager.setAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,

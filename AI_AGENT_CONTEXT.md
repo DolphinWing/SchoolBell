@@ -61,7 +61,7 @@ A detailed `ROADMAP.md` is available in the project root, outlining planned enha
 - **Phase 1.5**: Developer Tools & Diagnostics (COMPLETED ✅ - Test Ringing in settings, 7-clicks dev mode, database mock & clear, active alarms diagnostics).
 - **Phase 2**: UX Refinement (In Progress 🏗️ - Swipe-to-dismiss & Snackbar feedback; Keyboard & Conflict Check COMPLETED ✅).
 - **Phase 3**: Advanced Features (Independent volume control).
-- **Phase 4**: Operations (Firebase Analytics & Crashlytics).
+- **Phase 4**: Operations (Firebase Analytics & Crashlytics - **Security Rules**: `google-services.json` excluded from repo, injected via `GOOGLE_SERVICES_JSON_BASE64` secret in GitHub Actions CI/CD to prevent quota abuse).
 
 ## 📂 Project Structure (Key Files)
 - `dolphin.android.apps.schoolbell.data`: Room entities, DAO, Database, and `SettingsRepository`.
@@ -89,6 +89,7 @@ To fully enable the build and publishing pipeline, configure the following secre
 
 | Secret Name | Description | Value Format / How to Generate |
 | :--- | :--- | :--- |
+| `GOOGLE_SERVICES_JSON_BASE64` | Firebase client configuration file encoded in Base64 | Convert `google-services.json` to string:<br>• **Win (PWSH)**: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("google-services.json"))`<br>• **macOS**: `openssl base64 -in google-services.json -A` |
 | `DISCORD_WEBHOOK` | Discord Webhook URL for build notifications | URL format: `https://discord.com/api/webhooks/...` |
 | `SERVICE_ACCOUNT_JSON` | Google Play Console API service account credentials | Complete JSON key string exported from GCP Console |
 | `RELEASE_SIGNING_KEY` | Release keystore file encoded in Base64 | Convert `.jks` to string:<br>• **Win (PWSH)**: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("release.jks"))`<br>• **macOS**: `openssl base64 -in release.jks -A` |

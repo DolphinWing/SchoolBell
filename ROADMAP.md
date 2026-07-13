@@ -44,6 +44,7 @@
 ### Phase 4: 數據洞察與維運 (Insights & Operations)
 - [ ] **Firebase Analytics & Crashlytics 整合**：追蹤核心功能使用數據並自動收集崩潰報告。
   *   *隱私合規規範*：必須在 `AndroidManifest.xml` 中使用 `tools:node="remove"` 強制移除 `AD_ID` 權限。此做法能保留 100% 的 App 使用行為分析與 Crash 追蹤功能，同時完全避開 Google Play 廣告 ID 宣告政策與隱私合規審查。
+  *   *憑證與安全管理*：`google-services.json` 必須加入 `.gitignore` 以防洩漏至 Public Repo。在 GitHub Actions 中使用 `GOOGLE_SERVICES_JSON_BASE64` 進行 Secrets 注入解碼，並於 Google Cloud Console 限制 API Key 僅限本套件名稱與特定 SHA-1 指紋存取，防範 Quota 濫用與垃圾數據灌入。
 
 ---
 
