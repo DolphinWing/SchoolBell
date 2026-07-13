@@ -10,7 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,10 +25,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -53,7 +51,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -73,12 +70,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dolphin.android.apps.schoolbell.BuildConfig
 import dolphin.android.apps.schoolbell.R
@@ -176,7 +176,6 @@ fun MainScreen(
         onToggleSchedule = { schedule, enabled -> viewModel.toggleSchedule(schedule, enabled) },
         onDeleteSchedule = { viewModel.deleteSchedule(it) },
         onTestBell = onTestBell,
-        onAddMockSchedules = { viewModel.insertMockSchedules() },
         onVersionClick = {
             val currentTime = System.currentTimeMillis()
             if (currentTime - lastClickTime < 2000) {
@@ -207,9 +206,17 @@ fun MainScreen(
     )
 
     // Check permissions when returning to the screen (e.g., from settings)
-    DisposableEffect(Unit) {
-        viewModel.checkPermissions()
-        onDispose { }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.checkPermissions(checkBattery = false)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 }
 
@@ -270,7 +277,6 @@ fun MainContent(
     onToggleSchedule: (Schedule, Boolean) -> Unit,
     onDeleteSchedule: (Schedule) -> Unit,
     onTestBell: () -> Unit,
-    onAddMockSchedules: () -> Unit,
     onVersionClick: () -> Unit,
     onRequestNotification: () -> Unit,
     onRequestExactAlarm: () -> Unit
@@ -547,7 +553,9 @@ fun GlobalSettingsCard(
                         Text(
                             stringResource(R.string.settings_test_alarm_summary),
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (masterEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+                            color = if (masterEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onErrorContainer.copy(
+                                alpha = 0.7f
+                            )
                         )
                     }
                 }
@@ -691,7 +699,7 @@ private fun formatDays(days: String): String {
 
 @Preview(showBackground = true, name = "Light Mode")
 @Composable
-fun MainScreenPreview() {
+private fun MainScreenPreview() {
     SchoolBellTheme {
         MainContent(
             schedules = listOf(
@@ -709,7 +717,6 @@ fun MainScreenPreview() {
             onToggleSchedule = { _, _ -> },
             onDeleteSchedule = {},
             onTestBell = {},
-            onAddMockSchedules = {},
             onVersionClick = {},
             onRequestNotification = {},
             onRequestExactAlarm = {}
@@ -719,7 +726,7 @@ fun MainScreenPreview() {
 
 @Preview(showBackground = true, name = "Dark Mode")
 @Composable
-fun MainScreenDarkPreview() {
+private fun MainScreenDarkPreview() {
     SchoolBellTheme(darkTheme = true) {
         MainContent(
             schedules = listOf(
@@ -737,7 +744,6 @@ fun MainScreenDarkPreview() {
             onToggleSchedule = { _, _ -> },
             onDeleteSchedule = {},
             onTestBell = {},
-            onAddMockSchedules = {},
             onVersionClick = {},
             onRequestNotification = {},
             onRequestExactAlarm = {}
@@ -747,7 +753,7 @@ fun MainScreenDarkPreview() {
 
 @Preview(showBackground = true, name = "Settings Card Collapsed")
 @Composable
-fun GlobalSettingsCardCollapsedPreview() {
+private fun GlobalSettingsCardCollapsedPreview() {
     SchoolBellTheme {
         Box(modifier = Modifier.padding(16.dp)) {
             GlobalSettingsCard(
@@ -780,7 +786,7 @@ fun GlobalSettingsCardExpandedPreview() {
 
 @Preview(showBackground = true, name = "Settings Card Disabled (Warning)")
 @Composable
-fun GlobalSettingsCardDisabledPreview() {
+private fun GlobalSettingsCardDisabledPreview() {
     SchoolBellTheme {
         Box(modifier = Modifier.padding(16.dp)) {
             GlobalSettingsCard(
@@ -820,8 +826,12 @@ fun DeveloperToolsDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Section 1: Actions
-                Text(text = "Actions", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                
+                Text(
+                    text = "Actions",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -835,7 +845,7 @@ fun DeveloperToolsDialog(
                     ) {
                         Text("Add Mocks")
                     }
-                    
+
                     TextButton(
                         onClick = {
                             onClearAllSchedules()
@@ -891,7 +901,11 @@ fun DeveloperToolsDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "Active Alarms Diagnostics", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                    Text(
+                        text = "Active Alarms Diagnostics",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     IconButton(onClick = { diagnosticsList = getDiagnostics() }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
@@ -899,7 +913,7 @@ fun DeveloperToolsDialog(
                         )
                     }
                 }
-                
+
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()

@@ -59,7 +59,7 @@ A detailed `ROADMAP.md` is available in the project root, outlining planned enha
 - **Phase 0**: Testing & Quality Assurance (COMPLETED ✅).
 - **Phase 1**: Stability & Foundation (COMPLETED ✅ - Battery optimization, Language support).
 - **Phase 1.5**: Developer Tools & Diagnostics (COMPLETED ✅ - Test Ringing in settings, 7-clicks dev mode, database mock & clear, active alarms diagnostics).
-- **Phase 2**: UX Refinement (In Progress 🏗️ - Swipe-to-dismiss & Snackbar feedback; Keyboard & Conflict Check COMPLETED ✅).
+- **Phase 2**: UX Refinement (In Progress 🏗️ - Swipe-to-dismiss, Snackbar feedback & Battery UX/Lifecycle fix; Keyboard & Conflict Check COMPLETED ✅).
 - **Phase 3**: Advanced Features (Independent volume control).
 - **Phase 4**: Operations (Firebase Analytics & Crashlytics - **Security Rules**: `google-services.json` excluded from repo, injected via `GOOGLE_SERVICES_JSON_BASE64` secret in GitHub Actions CI/CD to prevent quota abuse).
 

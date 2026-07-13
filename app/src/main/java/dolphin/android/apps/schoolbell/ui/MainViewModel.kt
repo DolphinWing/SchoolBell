@@ -49,6 +49,8 @@ class MainViewModel(
     private val _showBatteryWarningSnackbar = MutableStateFlow(false)
     val showBatteryWarningSnackbar: StateFlow<Boolean> = _showBatteryWarningSnackbar.asStateFlow()
 
+    private var hasShownBatteryWarningInSession = false
+
     val schedules: StateFlow<List<Schedule>> = scheduleDao.getAllSchedulesFlow()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -93,7 +95,12 @@ class MainViewModel(
         viewModelScope.launch {
             val isIgnoring = systemFeatureChecker.isIgnoringBatteryOptimizations()
             val ignoreWarning = settingsRepository.ignoreBatteryWarningFlow.first()
-            _showBatteryWarningSnackbar.value = !isIgnoring && !ignoreWarning
+            if (!isIgnoring && !ignoreWarning && !hasShownBatteryWarningInSession) {
+                _showBatteryWarningSnackbar.value = true
+                hasShownBatteryWarningInSession = true
+            } else {
+                _showBatteryWarningSnackbar.value = false
+            }
         }
     }
 

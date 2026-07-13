@@ -37,6 +37,9 @@
 - [x] **時間衝突判定防呆與警告**：引入 `ScheduleValidator` 即時比對 `(Time, DaysOfWeek)` 交集衝突，於點擊儲存前攔截並在時間欄位下方顯示紅色錯誤警告。
 - [ ] **清單操作優化 (Swipe-to-Dismiss)**：在 `LazyColumn` 列表項目中實作 Material 3 的滑動刪除手勢。
 - [ ] **操作回饋系統**：實作標準 Snackbar 提示機制，提供「復原 (Undo)」按鈕防止誤刪。
+- [x] **電池最佳化警告 UX 優化與權限生命週期修復**：
+    - 修復 `MainScreen` 中 `DisposableEffect` 無法監聽返回事件的 Bug，改用 `LifecycleEventObserver` 監聽 `ON_RESUME`，確保從系統設定頁面返回時能即時重新檢查權限。
+    - 優化電池警告 Snackbar 顯示邏輯：引入 Session-level 記憶體防護（單次啟動僅提示一次），且在生命週期返回檢查時排除電池狀態，避免編輯鬧鐘或切換背景時重複彈出警告。
 
 ### Phase 3: 進階功能 (Advanced Features)
 - [ ] **獨立音量控制 (Volume Slider)**：在全域設定卡片中增加調整鈴聲音量的拉條，實作相對於系統音量的獨立控制。
