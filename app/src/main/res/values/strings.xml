@@ -8,6 +8,10 @@
     <string name="main_add_schedule">Add Schedule</string>
     <string name="main_delete">Delete</string>
     <string name="main_test_ringing">Test Ringing</string>
+    <string name="main_schedule_deleted">Deleted \"%1$s\"</string>
+    <string name="main_undo">Undo</string>
+    <string name="main_schedule_added">Added \"%1$s\"</string>
+    <string name="main_schedule_restored">Restored \"%1$s\"</string>
 
     <!-- Global Settings Card -->
     <string name="settings_master_switch">Master Switch</string>

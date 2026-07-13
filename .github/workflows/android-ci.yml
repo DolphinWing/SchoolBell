@@ -55,3 +55,5 @@ jobs:
         status: ${{ job.status }}
         content: "SchoolBell Android CI Run"
         nodetail: true
+        url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        description: "Commit: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) by ${{ github.actor }}"

@@ -2,6 +2,7 @@ package dolphin.android.apps.schoolbell.ui
 
 import android.app.Application
 import android.app.backup.BackupManager
+import androidx.compose.material3.SnackbarDuration
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -13,12 +14,14 @@ import dolphin.android.apps.schoolbell.data.ScheduleDao
 import dolphin.android.apps.schoolbell.data.ScheduleDatabase
 import dolphin.android.apps.schoolbell.data.SettingsRepository
 import dolphin.android.apps.schoolbell.service.AlarmScheduler
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -39,8 +42,19 @@ class MainViewModel(
         val canScheduleExactAlarms: Boolean = true
     )
 
-    private val _showBatteryWarningSnackbar = MutableStateFlow(false)
-    val showBatteryWarningSnackbar: StateFlow<Boolean> = _showBatteryWarningSnackbar.asStateFlow()
+    private val _uiEventChannel = Channel<UiEvent>(Channel.BUFFERED)
+    val uiEventFlow = _uiEventChannel.receiveAsFlow()
+
+    private val _showBatteryDialog = MutableStateFlow(false)
+    val showBatteryDialog: StateFlow<Boolean> = _showBatteryDialog.asStateFlow()
+
+    fun openBatteryDialog() {
+        _showBatteryDialog.value = true
+    }
+
+    fun closeBatteryDialog() {
+        _showBatteryDialog.value = false
+    }
 
     private var hasShownBatteryWarningInSession = false
 
@@ -89,10 +103,14 @@ class MainViewModel(
             val isIgnoring = systemFeatureChecker.isIgnoringBatteryOptimizations()
             val ignoreWarning = settingsRepository.ignoreBatteryWarningFlow.first()
             if (!isIgnoring && !ignoreWarning && !hasShownBatteryWarningInSession) {
-                _showBatteryWarningSnackbar.value = true
                 hasShownBatteryWarningInSession = true
-            } else {
-                _showBatteryWarningSnackbar.value = false
+                _uiEventChannel.send(
+                    UiEvent.ShowSnackbar(
+                        messageRes = dolphin.android.apps.schoolbell.R.string.battery_warning_snackbar_message,
+                        actionRes = dolphin.android.apps.schoolbell.R.string.battery_warning_snackbar_action,
+                        duration = SnackbarDuration.Long,
+                        onAction = { openBatteryDialog() }
+                    ))
             }
         }
     }
@@ -101,10 +119,6 @@ class MainViewModel(
         viewModelScope.launch {
             settingsRepository.setIgnoreBatteryWarning(ignore)
         }
-    }
-
-    fun dismissBatteryWarningSnackbar() {
-        _showBatteryWarningSnackbar.value = false
     }
 
     fun insertMockSchedules() {
@@ -163,6 +177,15 @@ class MainViewModel(
                 AlarmScheduler.scheduleAlarm(getApplication(), inserted)
             }
             backupManager.dataChanged()
+
+            val displayLabel = getDisplayLabel(label, hour, minute)
+            _uiEventChannel.send(
+                UiEvent.ShowSnackbar(
+                    messageRes = dolphin.android.apps.schoolbell.R.string.main_schedule_added,
+                    formatArgs = listOf(displayLabel),
+                    duration = SnackbarDuration.Short
+                )
+            )
         }
     }
 
@@ -183,6 +206,43 @@ class MainViewModel(
             AlarmScheduler.cancelAlarm(getApplication(), schedule)
             scheduleDao.delete(schedule)
             backupManager.dataChanged()
+
+            val displayLabel = getDisplayLabel(schedule.label, schedule.hour, schedule.minute)
+            _uiEventChannel.send(
+                UiEvent.ShowSnackbar(
+                messageRes = dolphin.android.apps.schoolbell.R.string.main_schedule_deleted,
+                formatArgs = listOf(displayLabel),
+                actionRes = dolphin.android.apps.schoolbell.R.string.main_undo,
+                duration = SnackbarDuration.Long,
+                onAction = { restoreSchedule(schedule) }
+            ))
+        }
+    }
+
+    private fun getDisplayLabel(label: String, hour: Int, minute: Int): String {
+        return if (label.isBlank()) {
+            String.format(java.util.Locale.getDefault(), "%02d:%02d", hour, minute)
+        } else {
+            label
+        }
+    }
+
+    fun restoreSchedule(schedule: Schedule) {
+        viewModelScope.launch {
+            scheduleDao.insert(schedule)
+            if (masterSwitchEnabled.value && schedule.isActive) {
+                AlarmScheduler.scheduleAlarm(getApplication(), schedule)
+            }
+            backupManager.dataChanged()
+
+            val displayLabel = getDisplayLabel(schedule.label, schedule.hour, schedule.minute)
+            _uiEventChannel.send(
+                UiEvent.ShowSnackbar(
+                    messageRes = dolphin.android.apps.schoolbell.R.string.main_schedule_restored,
+                    formatArgs = listOf(displayLabel),
+                    duration = SnackbarDuration.Short
+                )
+            )
         }
     }
 

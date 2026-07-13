@@ -8,6 +8,10 @@
     <string name="main_add_schedule">新增鐘聲</string>
     <string name="main_delete">刪除</string>
     <string name="main_test_ringing">測試鈴聲</string>
+    <string name="main_schedule_deleted">已刪除「%1$s」</string>
+    <string name="main_undo">復原</string>
+    <string name="main_schedule_added">已新增「%1$s」</string>
+    <string name="main_schedule_restored">已還原「%1$s」</string>
 
     <!-- Global Settings Card -->
     <string name="settings_master_switch">鬧鐘總開關</string>

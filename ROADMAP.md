@@ -35,8 +35,10 @@
 重點在於強化 UI 的直覺性與操作流暢度。
 - [x] **編輯頁面鍵盤遮擋與焦點優化**：重構 `EditScheduleScreen` 外層佈局引入 `imePadding` 與滾動支援，並在點擊時間卡片/儲存/返回時呼叫 `focusManager.clearFocus()` 優雅收起鍵盤。
 - [x] **時間衝突判定防呆與警告**：引入 `ScheduleValidator` 即時比對 `(Time, DaysOfWeek)` 交集衝突，於點擊儲存前攔截並在時間欄位下方顯示紅色錯誤警告。
-- [ ] **清單操作優化 (Swipe-to-Dismiss)**：在 `LazyColumn` 列表項目中實作 Material 3 的滑動刪除手勢。
-- [ ] **操作回饋系統**：實作標準 Snackbar 提示機制，提供「復原 (Undo)」按鈕防止誤刪。
+- [x] **清單操作優化 (Swipe-to-Dismiss) & 操作回饋 (Snackbar Undo) 整合**：
+    - **滑動手勢**：採用 M3 `SwipeToDismissBox` 封裝，以 `LaunchedEffect` 監聽手勢狀態，限制僅能 `EndToStart` (右往左) 滑動以防誤觸；背景採用 `errorContainer` 配色搭配 Delete 圖示。
+    - **雙軌並行刪除**：整合「卡片滑動」與「垃圾桶按鈕點擊」，兩者皆指向同一個邏輯進行物理刪除（Approach B）。
+    - **Snackbar 復原與操作回饋**：引進 `UiEvent` 聲明式事件架構，刪除時透過 ViewModel 派發帶有「復原 (Undo)」的 Snackbar（延長停留時間至 `Long`）；新增與還原成功時亦會派發對應的確認通知。針對無標籤的鬧鐘，自動以其時間 `"HH:mm"` 作為 fallback 標題以利識別。整體架構支援多語言並消除了 static context 的 Lint 安全問題。
 - [x] **電池最佳化警告 UX 優化與權限生命週期修復**：
     - 修復 `MainScreen` 中 `DisposableEffect` 無法監聽返回事件的 Bug，改用 `LifecycleEventObserver` 監聽 `ON_RESUME`，確保從系統設定頁面返回時能即時重新檢查權限。
     - 優化電池警告 Snackbar 顯示邏輯：引入 Session-level 記憶體防護（單次啟動僅提示一次），且在生命週期返回檢查時排除電池狀態，避免編輯鬧鐘或切換背景時重複彈出警告。

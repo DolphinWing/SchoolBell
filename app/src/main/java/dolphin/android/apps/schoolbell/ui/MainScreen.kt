@@ -7,6 +7,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -18,20 +19,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -70,7 +75,7 @@ fun MainScreen(
     val masterEnabled by viewModel.masterSwitchEnabled.collectAsState()
     val useCustomBell by viewModel.useCustomBell.collectAsState()
     val permissionsState by viewModel.permissionsState.collectAsState()
-    val showBatteryWarningSnackbar by viewModel.showBatteryWarningSnackbar.collectAsState()
+    val showBatteryDialog by viewModel.showBatteryDialog.collectAsState()
     val context = LocalContext.current
 
     val notificationLauncher = rememberLauncherForActivityResult(
@@ -80,22 +85,25 @@ fun MainScreen(
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
-    var showBatteryDialog by remember { mutableStateOf(false) }
 
-    val snackbarMsg = stringResource(R.string.battery_warning_snackbar_message)
-    val snackbarAction = stringResource(R.string.battery_warning_snackbar_action)
-
-    LaunchedEffect(showBatteryWarningSnackbar) {
-        if (showBatteryWarningSnackbar) {
-            val result = snackbarHostState.showSnackbar(
-                message = snackbarMsg,
-                actionLabel = snackbarAction,
-                duration = SnackbarDuration.Long
-            )
-            if (result == SnackbarResult.ActionPerformed) {
-                showBatteryDialog = true
+    LaunchedEffect(Unit) {
+        viewModel.uiEventFlow.collect { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> {
+                    snackbarHostState.currentSnackbarData?.dismiss()
+                    val message =
+                        context.applicationContext.getString(event.messageRes, *event.formatArgs.toTypedArray())
+                    val actionLabel = event.actionRes?.let { context.applicationContext.getString(it) }
+                    val result = snackbarHostState.showSnackbar(
+                        message = message,
+                        actionLabel = actionLabel,
+                        duration = event.duration
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        event.onAction?.invoke()
+                    }
+                }
             }
-            viewModel.dismissBatteryWarningSnackbar()
         }
     }
 
@@ -105,13 +113,13 @@ fun MainScreen(
                 if (neverShowAgain) {
                     viewModel.setIgnoreBatteryWarningPermanently(true)
                 }
-                showBatteryDialog = false
+                viewModel.closeBatteryDialog()
             },
             onGoToSettings = { neverShowAgain ->
                 if (neverShowAgain) {
                     viewModel.setIgnoreBatteryWarningPermanently(true)
                 }
-                showBatteryDialog = false
+                viewModel.closeBatteryDialog()
                 try {
                     val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
                     context.startActivity(intent)
@@ -272,11 +280,42 @@ fun MainContent(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(schedules, key = { it.id }) { schedule ->
-                            ScheduleCard(
-                                schedule = schedule,
-                                onToggle = { onToggleSchedule(schedule, it) },
-                                onDelete = { onDeleteSchedule(schedule) },
-                                onClick = { onEdit(schedule) }
+                            val dismissState = rememberSwipeToDismissBoxState()
+
+                            LaunchedEffect(dismissState.currentValue) {
+                                if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+                                    onDeleteSchedule(schedule)
+                                    dismissState.snapTo(SwipeToDismissBoxValue.Settled)
+                                }
+                            }
+
+                            SwipeToDismissBox(
+                                state = dismissState,
+                                enableDismissFromStartToEnd = false,
+                                backgroundContent = {
+                                    val color = MaterialTheme.colorScheme.errorContainer
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(color, shape = RoundedCornerShape(12.dp))
+                                            .padding(horizontal = 16.dp),
+                                        contentAlignment = Alignment.CenterEnd
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = stringResource(R.string.main_delete),
+                                            tint = MaterialTheme.colorScheme.onErrorContainer
+                                        )
+                                    }
+                                },
+                                content = {
+                                    ScheduleCard(
+                                        schedule = schedule,
+                                        onToggle = { onToggleSchedule(schedule, it) },
+                                        onDelete = { onDeleteSchedule(schedule) },
+                                        onClick = { onEdit(schedule) }
+                                    )
+                                }
                             )
                         }
                     }

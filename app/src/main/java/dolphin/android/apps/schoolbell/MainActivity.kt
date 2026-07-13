@@ -24,6 +24,7 @@ import dolphin.android.apps.schoolbell.ui.EditScheduleKey
 import dolphin.android.apps.schoolbell.ui.EditScheduleScreen
 import dolphin.android.apps.schoolbell.ui.MainKey
 import dolphin.android.apps.schoolbell.ui.MainScreen
+import dolphin.android.apps.schoolbell.ui.MainViewModel
 import dolphin.android.apps.schoolbell.ui.theme.SchoolBellTheme
 
 class MainActivity : ComponentActivity() {
@@ -58,6 +59,13 @@ fun AppNavigation(onTestBell: () -> Unit = {}) {
     val saveableStateDecorator = rememberSaveableStateHolderNavEntryDecorator<NavKey>()
     val viewModelDecorator = rememberViewModelStoreNavEntryDecorator<NavKey>()
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val activity = context as androidx.lifecycle.ViewModelStoreOwner
+    val sharedViewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+        viewModelStoreOwner = activity,
+        factory = MainViewModel.Factory
+    )
+
     val sceneStrategy = ListDetailSceneStrategy<NavKey>(
         shouldHandleSinglePaneLayout = false,
         backNavigationBehavior = BackNavigationBehavior.PopUntilScaffoldValueChange,
@@ -80,7 +88,8 @@ fun AppNavigation(onTestBell: () -> Unit = {}) {
                 MainScreen(
                     onAdd = { backStack.add(EditScheduleKey()) },
                     onEdit = { schedule -> backStack.add(EditScheduleKey(schedule.id)) },
-                    onTestBell = onTestBell
+                    onTestBell = onTestBell,
+                    viewModel = sharedViewModel
                 )
             }
 
@@ -90,7 +99,8 @@ fun AppNavigation(onTestBell: () -> Unit = {}) {
             ) {
                 EditScheduleScreen(
                     scheduleId = key.scheduleId,
-                    onDismiss = { if (backStack.size > 1) backStack.removeAt(backStack.size - 1) }
+                    onDismiss = { if (backStack.size > 1) backStack.removeAt(backStack.size - 1) },
+                    viewModel = sharedViewModel
                 )
             }
 

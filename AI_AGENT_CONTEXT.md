@@ -40,7 +40,7 @@ SchoolBell is a modern Android application for scheduling and triggering school 
 - **Reactive UI Warning**: A high-visibility card in `MainScreen` appears when critical permissions are missing, providing:
     - Direct runtime permission requests for Notifications.
     - Intent-based redirection to `Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM` for Exact Alarms.
-- **Battery Optimization Guide**: Delayed check (3 seconds after startup) verifies if the app is optimized. If optimized and not permanently ignored, displays a Snackbar. Clicking "View" opens an explanation Dialog with a "Never show again" option (saved in DataStore), redirecting to `Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS`.
+- **Battery Optimization Guide**: Delayed check (3 seconds after startup) verifies if the app is optimized. If optimized and not permanently ignored, it emits a `UiEvent.ShowSnackbar`. Clicking the Action triggers `openBatteryDialog()` in `MainViewModel` to toggle the ViewModel-managed `showBatteryDialog` state, which displays an explanation dialog with a "Never show again" option (saved in DataStore), redirecting to `Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS`.
 - **Lifecycle Awareness & Throttling**: Uses `LifecycleEventObserver` (via `DisposableEffect`) to trigger permission re-checks on `ON_RESUME` (excluding battery optimizations to prevent redundant alerts). Battery warning is checked 3 seconds after startup and throttled using a session-level memory flag to pop up at most once per session.
 
 ### 4. Navigation 3 Strategy
@@ -54,6 +54,12 @@ SchoolBell is a modern Android application for scheduling and triggering school 
 - **Keep Screen On**: In `DEBUG` builds, `FLAG_KEEP_SCREEN_ON` is added to the activity window, ensuring the screen remains on while the app is in the foreground for easier debugging.
 - **UI Contrast**: The main "Add" FAB uses the **Secondary (Sunset Orange)** color for better visual distinction from the primary-colored toggles in the schedule list.
 
+### 6. UiEvent & Swipe-to-Dismiss Strategy
+- **`UiEvent` Architecture & Feedback**: Uses a sealed interface `UiEvent` to handle one-off UI side effects (e.g. `ShowSnackbar`). ViewModel posts events via a buffered `Channel<UiEvent>`, and UI collects them inside `LaunchedEffect(Unit)` using `applicationContext` string resolution to prevent static context Lint errors. Provides user feedback for deletion (with a `Long` duration Undo action), creation (`Short` duration), and restoration (`Short` duration).
+- **Label Fallback**: For schedule items without labels, the system automatically formats and displays the alarm time (`"HH:mm"`) as the fallback identifier in all Snackbar messages, ensuring localized and clear user feedback.
+- **Swipe-to-Dismiss Box**: Wraps schedule items with Material 3 `SwipeToDismissBox`. Uses `LaunchedEffect(dismissState.currentValue)` to declaratively observe `EndToStart` events and trigger deletion. It immediately resets to `Settled` using `dismissState.snapTo(Settled)` after deletion to prevent state-reuse bugs (auto-deletion loop) when restored via Undo.
+- **Shared ViewModel Scope**: The `MainViewModel` is hoisted to the Activity level in `AppNavigation` (using `LocalContext.current` as `ViewModelStoreOwner`). This ensures `MainScreen` and `EditScheduleScreen` share the same event channel and state flow, allowing side effects (like adding alarms) from the edit screen to be correctly handled and popped up on the main screen.
+
 ## 🗺️ Future Roadmap
 A detailed `ROADMAP.md` is available in the project root, outlining planned enhancements for:
 - **Phase 0**: Testing & Quality Assurance (COMPLETED ✅).
@@ -66,7 +72,7 @@ A detailed `ROADMAP.md` is available in the project root, outlining planned enha
 ## 📂 Project Structure (Key Files)
 - `dolphin.android.apps.schoolbell.data`: Room entities, DAO, Database, and `SettingsRepository`.
 - `dolphin.android.apps.schoolbell.service`: `AlarmScheduler`, `AlarmReceiver`, and `BellRingService`.
-- `dolphin.android.apps.schoolbell.ui`: Compose Screens (`MainScreen`, `EditScheduleScreen`), decoupled Dialogs (`BatteryOptimizationDialog`, `DeveloperToolsDialog`), custom Cards (`GlobalSettingsCard`, `ScheduleCard`, `PermissionWarningCard`), and Material 3 Theme.
+- `dolphin.android.apps.schoolbell.ui`: Compose Screens (`MainScreen`, `EditScheduleScreen`), decoupled Dialogs (`BatteryOptimizationDialog`, `DeveloperToolsDialog`), custom Cards (`GlobalSettingsCard`, `ScheduleCard`, `PermissionWarningCard`), `UiEvent` architecture, and Material 3 Theme.
 - `store_assets/`: Marketing materials, store listing copy, and image specifications for Google Play Console.
 
 ## 🛠️ Current Development State
