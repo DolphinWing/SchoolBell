@@ -72,7 +72,8 @@ A detailed `ROADMAP.md` is available in the project root, outlining planned enha
 - **Phase 1.5**: Developer Tools & Diagnostics (COMPLETED ✅ - Test Ringing in settings, 7-clicks dev mode, database mock & clear, active alarms diagnostics).
 - **Phase 2**: UX Refinement (COMPLETED ✅ - Swipe-to-dismiss, Snackbar feedback, Keyboard, Conflict Check & Battery UX/Lifecycle fix).
 - **Phase 3**: Advanced Features (COMPLETED ✅ - Volume control & manual test audition).
-- **Phase 4**: Operations (Firebase Analytics & Crashlytics - **Security Rules**: `google-services.json` excluded from repo, injected via `GOOGLE_SERVICES_JSON_BASE64` secret in GitHub Actions CI/CD to prevent quota abuse).
+- **Phase 4**: Operations (COMPLETED ✅ - Firebase Analytics & Crashlytics - **Security Rules**: `google-services.json` excluded from repo, injected via `GOOGLE_SERVICES_JSON_BASE64` secret in GitHub Actions CI/CD to prevent quota abuse).
+- **Phase 5**: Experimental AI Features (On-Device AI Voice Control - **Priority: Extremely Low**).
 
 ## 📂 Project Structure (Key Files)
 - `dolphin.android.apps.schoolbell.data`: Room entities, DAO, Database, and `SettingsRepository`.

@@ -51,10 +51,16 @@
     - **單元測試**：撰寫 Repository 與 ViewModel 單元測試驗證 `0.5f` 預設值、`0.0f..1.0f` 邊界防禦與 DataStore 寫入同步。
 
 ### Phase 4: 數據洞察與維運 (Insights & Operations)
-- [ ] **Firebase Analytics & Crashlytics 整合**：追蹤核心功能使用數據並自動收集崩潰報告。
+- [x] **Firebase Analytics & Crashlytics 整合**：追蹤核心功能使用數據並自動收集崩潰報告。
   *   *隱私合規規範*：必須在 `AndroidManifest.xml` 中使用 `tools:node="remove"` 強制移除 `AD_ID` 權限。此做法能保留 100% 的 App 使用行為分析與 Crash 追蹤功能，同時完全避開 Google Play 廣告 ID 宣告政策與隱私合規審查。
   *   *憑證與安全管理*：`google-services.json` 必須加入 `.gitignore` 以防洩漏至 Public Repo。在 GitHub Actions 中使用 `GOOGLE_SERVICES_JSON_BASE64` 進行 Secrets 注入解碼，並於 Google Cloud Console 限制 API Key 僅限本套件名稱與特定 SHA-1 指紋存取，防範 Quota 濫用與垃圾數據灌入。
 
+### Phase 5: 前瞻 AI 功能探索 (Experimental AI Features - ⚠️ 極低優先權)
+- [ ] **端側離線語意鬧鐘 (On-Device AI Voice Control)**：
+    - **動態功能偵測**：於 runtime 偵測系統 `AICoreClient` 狀態，僅在設備支援端側 Gemini Nano (`ModelStatus.READY`) 時才展示語音控制 UI，對不支援的手機優雅隱藏。
+    - **免錄音權限 STT**：調用系統級 `RecognizerIntent.ACTION_RECOGNIZE_SPEECH` 進行語音轉文字，免去索取麥克風敏感權限的隱私壓力，並以 `try-catch` 防範無語音引擎設備的崩潰。
+    - **端側語意解析**：以 Gemini Nano 本地推理 Prompt 將口語（例如 "幫我設明天八點半開會"）轉為結構化 JSON 鬧鐘參數，並無縫對接 ViewModel 的 Reactive 新增/刪除管道。
+
 ---
 
-*Last Updated: 2024-07-13*
+*Last Updated: 2026-07-13*

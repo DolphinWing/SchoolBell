@@ -45,6 +45,12 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    - name: Decode Google Services JSON
+      run: |
+        echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > app/google-services.json
+        echo "MD5 Checksum of google-services.json:"
+        md5sum app/google-services.json
+
     - name: Run Unit Tests
       run: ./gradlew testDebugUnitTest --no-daemon
 
