@@ -76,6 +76,7 @@ fun MainScreen(
     val useCustomBell by viewModel.useCustomBell.collectAsState()
     val permissionsState by viewModel.permissionsState.collectAsState()
     val showBatteryDialog by viewModel.showBatteryDialog.collectAsState()
+    val volume by viewModel.volume.collectAsState()
     val context = LocalContext.current
 
     val notificationLauncher = rememberLauncherForActivityResult(
@@ -148,10 +149,12 @@ fun MainScreen(
         schedules = schedules,
         masterEnabled = masterEnabled,
         useCustomBell = useCustomBell,
+        volume = volume,
         permissionsState = permissionsState,
         snackbarHostState = snackbarHostState,
         onToggleMaster = { viewModel.toggleMasterSwitch(it) },
         onToggleCustomBell = { viewModel.toggleUseCustomBell(it) },
+        onVolumeChange = { viewModel.setVolume(it) },
         onAdd = onAdd,
         onEdit = onEdit,
         onToggleSchedule = { schedule, enabled -> viewModel.toggleSchedule(schedule, enabled) },
@@ -207,10 +210,12 @@ fun MainContent(
     schedules: List<Schedule>,
     masterEnabled: Boolean,
     useCustomBell: Boolean,
+    volume: Float,
     permissionsState: MainViewModel.PermissionsState,
     snackbarHostState: SnackbarHostState,
     onToggleMaster: (Boolean) -> Unit,
     onToggleCustomBell: (Boolean) -> Unit,
+    onVolumeChange: (Float) -> Unit,
     onAdd: () -> Unit,
     onEdit: (Schedule) -> Unit,
     onToggleSchedule: (Schedule, Boolean) -> Unit,
@@ -258,8 +263,10 @@ fun MainContent(
             GlobalSettingsCard(
                 masterEnabled = masterEnabled,
                 useCustomBell = useCustomBell,
+                volume = volume,
                 onToggleMaster = onToggleMaster,
                 onToggleCustomBell = onToggleCustomBell,
+                onVolumeChange = onVolumeChange,
                 onTestBell = onTestBell
             )
 
@@ -355,6 +362,7 @@ fun MainScreenPreview() {
             ),
             masterEnabled = true,
             useCustomBell = true,
+            volume = .5f,
             permissionsState = MainViewModel.PermissionsState(
                 hasNotificationPermission = true,
                 canScheduleExactAlarms = true
@@ -362,6 +370,7 @@ fun MainScreenPreview() {
             snackbarHostState = remember { SnackbarHostState() },
             onToggleMaster = {},
             onToggleCustomBell = {},
+            onVolumeChange = {},
             onAdd = {},
             onEdit = {},
             onToggleSchedule = { _, _ -> },
@@ -385,6 +394,7 @@ fun MainScreenDarkPreview() {
             ),
             masterEnabled = true,
             useCustomBell = true,
+            volume = .5f,
             permissionsState = MainViewModel.PermissionsState(
                 hasNotificationPermission = true,
                 canScheduleExactAlarms = true
@@ -392,6 +402,7 @@ fun MainScreenDarkPreview() {
             snackbarHostState = remember { SnackbarHostState() },
             onToggleMaster = {},
             onToggleCustomBell = {},
+            onVolumeChange = {},
             onAdd = {},
             onEdit = {},
             onToggleSchedule = { _, _ -> },

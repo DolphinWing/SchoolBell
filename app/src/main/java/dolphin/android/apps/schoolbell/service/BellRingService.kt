@@ -80,13 +80,14 @@ class BellRingService : Service() {
         serviceScope.launch {
             val settings = SettingsRepository(this@BellRingService)
             val useCustom = settings.useCustomBellFlow.first()
-            playSound(useCustom)
+            val vol = settings.volumeFlow.first()
+            playSound(useCustom, vol)
         }
 
         return START_NOT_STICKY
     }
 
-    private fun playSound(useCustom: Boolean) {
+    private fun playSound(useCustom: Boolean, volume: Float) {
         if (mediaPlayer != null) {
             return // Already playing
         }
@@ -114,6 +115,11 @@ class BellRingService : Service() {
                 )
                 isLooping = !useCustom // Loop only system alarm, custom bell plays once
                 setWakeMode(this@BellRingService, PowerManager.PARTIAL_WAKE_LOCK)
+                
+                if (useCustom) {
+                    setVolume(volume, volume)
+                }
+                
                 prepare()
                 start()
 

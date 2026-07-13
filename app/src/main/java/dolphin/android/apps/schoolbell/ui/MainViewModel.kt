@@ -67,6 +67,9 @@ class MainViewModel(
     val useCustomBell: StateFlow<Boolean> = settingsRepository.useCustomBellFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val volume: StateFlow<Float> = settingsRepository.volumeFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.5f)
+
     init {
         checkPermissions(checkBattery = false)
         viewModelScope.launch {
@@ -83,6 +86,13 @@ class MainViewModel(
     fun toggleUseCustomBell(useCustom: Boolean) {
         viewModelScope.launch {
             settingsRepository.setUseCustomBell(useCustom)
+            backupManager.dataChanged()
+        }
+    }
+
+    fun setVolume(vol: Float) {
+        viewModelScope.launch {
+            settingsRepository.setVolume(vol)
             backupManager.dataChanged()
         }
     }

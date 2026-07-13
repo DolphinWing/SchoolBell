@@ -11,6 +11,10 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
+    - name: Get short SHA
+      id: short_sha
+      run: echo "sha_short=$(git rev-parse --short=6 HEAD)" >> $GITHUB_OUTPUT
+
     - name: set up JDK 17
       uses: actions/setup-java@v5
       with:
@@ -53,4 +57,4 @@ jobs:
         content: "SchoolBell Google Play Internal Publish"
         nodetail: true
         url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        description: "Commit: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) by ${{ github.actor }}"
+        description: "`${{ github.ref_name }}` | [${{ steps.short_sha.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) by ${{ github.actor }}"

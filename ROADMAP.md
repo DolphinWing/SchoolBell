@@ -44,7 +44,11 @@
     - 優化電池警告 Snackbar 顯示邏輯：引入 Session-level 記憶體防護（單次啟動僅提示一次），且在生命週期返回檢查時排除電池狀態，避免編輯鬧鐘或切換背景時重複彈出警告。
 
 ### Phase 3: 進階功能 (Advanced Features)
-- [ ] **獨立音量控制 (Volume Slider)**：在全域設定卡片中增加調整鈴聲音量的拉條，實作相對於系統音量的獨立控制。
+- [x] **獨立音量控制 (Volume Slider)**：
+    - **相對音量機制**：於全域設定卡片中加入 Volume Slider (0% ~ 100%)，預設為 `50%` (`0.5f`)，寫入 DataStore。僅在 `Campus Bell` (MediaPlayer) 模式下啟用，`System Alarm` 模式下 UI 呈 Disabled 並提供提示。
+    - **播放器聯動**：修改 `BellRingService` 於播放 `Campus Bell` 時取得該音量並套用至 `mediaPlayer.setVolume(vol, vol)`。
+    - **測試與試聽**：不採用滑動釋放後自動播放的「自動試聽」設計，而由使用者點擊下方的「測試響鈴系統」主動觸發試聽，保障使用者在安靜場合的控制權，UI 代碼更為簡潔（KISS 原則）。
+    - **單元測試**：撰寫 Repository 與 ViewModel 單元測試驗證 `0.5f` 預設值、`0.0f..1.0f` 邊界防禦與 DataStore 寫入同步。
 
 ### Phase 4: 數據洞察與維運 (Insights & Operations)
 - [ ] **Firebase Analytics & Crashlytics 整合**：追蹤核心功能使用數據並自動收集崩潰報告。
@@ -53,4 +57,4 @@
 
 ---
 
-*Last Updated: 2024-07-12*
+*Last Updated: 2024-07-13*

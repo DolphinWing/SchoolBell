@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.Card
@@ -22,11 +23,14 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,8 +47,10 @@ import dolphin.android.apps.schoolbell.ui.theme.SchoolBellTheme
 fun GlobalSettingsCard(
     masterEnabled: Boolean,
     useCustomBell: Boolean,
+    volume: Float,
     onToggleMaster: (Boolean) -> Unit,
     onToggleCustomBell: (Boolean) -> Unit,
+    onVolumeChange: (Float) -> Unit,
     onTestBell: () -> Unit,
     initialExpanded: Boolean = false
 ) {
@@ -101,6 +107,21 @@ fun GlobalSettingsCard(
                 RingtoneModeRow(
                     useCustomBell = useCustomBell,
                     onToggleCustomBell = onToggleCustomBell
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    color = if (masterEnabled)
+                        MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                    else
+                        MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.1f)
+                )
+
+                VolumeControlRow(
+                    volume = volume,
+                    useCustomBell = useCustomBell,
+                    masterEnabled = masterEnabled,
+                    onVolumeChange = onVolumeChange
                 )
 
                 HorizontalDivider(
@@ -239,6 +260,76 @@ private fun RingtoneModeRow(
 }
 
 @Composable
+private fun VolumeControlRow(
+    volume: Float,
+    useCustomBell: Boolean,
+    masterEnabled: Boolean,
+    onVolumeChange: (Float) -> Unit
+) {
+    var sliderValue by remember(volume) { mutableFloatStateOf(volume) }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = if (sliderValue == 0f || !useCustomBell) Icons.Filled.MusicOff else Icons.Filled.MusicNote,
+            contentDescription = null,
+            tint = if (masterEnabled && useCustomBell) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                alpha = 0.5f
+            )
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    stringResource(R.string.settings_volume),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (masterEnabled && useCustomBell) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = 0.5f
+                    )
+                )
+                if (masterEnabled && useCustomBell) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "${(sliderValue * 100).toInt()}%",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            if (useCustomBell) {
+                Slider(
+                    value = sliderValue,
+                    onValueChange = { sliderValue = it },
+                    onValueChangeFinished = {
+                        onVolumeChange(sliderValue)
+                    },
+                    valueRange = 0f..1f,
+                    enabled = masterEnabled,
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.secondary,
+                        activeTrackColor = MaterialTheme.colorScheme.secondary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.24f)
+                    )
+                )
+            } else {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    stringResource(R.string.settings_volume_summary_system),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun TestAlarmRow(
     masterEnabled: Boolean,
     onTestBell: () -> Unit
@@ -264,7 +355,9 @@ private fun TestAlarmRow(
             Text(
                 stringResource(R.string.settings_test_alarm_summary),
                 style = MaterialTheme.typography.bodySmall,
-                color = if (masterEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+                color = if (masterEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onErrorContainer.copy(
+                    alpha = 0.7f
+                )
             )
         }
     }
@@ -278,8 +371,10 @@ fun GlobalSettingsCardCollapsedPreview() {
             GlobalSettingsCard(
                 masterEnabled = true,
                 useCustomBell = true,
+                volume = 0.5f,
                 onToggleMaster = {},
                 onToggleCustomBell = {},
+                onVolumeChange = {},
                 onTestBell = {}
             )
         }
@@ -294,8 +389,10 @@ fun GlobalSettingsCardExpandedPreview() {
             GlobalSettingsCard(
                 masterEnabled = true,
                 useCustomBell = true,
+                volume = 0.5f,
                 onToggleMaster = {},
                 onToggleCustomBell = {},
+                onVolumeChange = {},
                 onTestBell = {},
                 initialExpanded = true
             )
@@ -311,8 +408,10 @@ fun GlobalSettingsCardDisabledPreview() {
             GlobalSettingsCard(
                 masterEnabled = false,
                 useCustomBell = true,
+                volume = 0.5f,
                 onToggleMaster = {},
                 onToggleCustomBell = {},
+                onVolumeChange = {},
                 onTestBell = {}
             )
         }

@@ -26,6 +26,8 @@
     <string name="settings_summary_disabled">All alarms paused</string>
     <string name="settings_test_alarm">Test Alarm System</string>
     <string name="settings_test_alarm_summary">Play a short ringtone &amp; show test notification</string>
+    <string name="settings_volume">Bell Volume</string>
+    <string name="settings_volume_summary_system">System alarm volume is managed by system settings</string>
 
     <!-- Permissions Card -->
     <string name="perm_title">Permissions Required</string>

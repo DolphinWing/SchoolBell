@@ -60,13 +60,18 @@ SchoolBell is a modern Android application for scheduling and triggering school 
 - **Swipe-to-Dismiss Box**: Wraps schedule items with Material 3 `SwipeToDismissBox`. Uses `LaunchedEffect(dismissState.currentValue)` to declaratively observe `EndToStart` events and trigger deletion. It immediately resets to `Settled` using `dismissState.snapTo(Settled)` after deletion to prevent state-reuse bugs (auto-deletion loop) when restored via Undo.
 - **Shared ViewModel Scope**: The `MainViewModel` is hoisted to the Activity level in `AppNavigation` (using `LocalContext.current` as `ViewModelStoreOwner`). This ensures `MainScreen` and `EditScheduleScreen` share the same event channel and state flow, allowing side effects (like adding alarms) from the edit screen to be correctly handled and popped up on the main screen.
 
+### 7. Volume Control Strategy (Phase 3)
+- **App-level Relative Volume**: Volume is saved as a Float (`0.0f..1.0f`) in `SettingsRepository` (defaulting to `0.5f` to prevent startup silent glitches). It only applies relative scaling to `Campus Bell` (MediaPlayer) playback, leaving the system alarm untouched for optimal safety.
+- **Audition Feedback**: Decoupled from automatic playback to prevent unexpected noise in quiet environments. Users can explicitly trigger a test ring using the dedicated "Test Alarm System" button below the slider to audit their volume settings.
+- **Context-driven UI**: The Slider is housed in `GlobalSettingsCard`. If `System Alarm` is selected, the Slider is disabled and displays a descriptive fallback message.
+
 ## 🗺️ Future Roadmap
 A detailed `ROADMAP.md` is available in the project root, outlining planned enhancements for:
 - **Phase 0**: Testing & Quality Assurance (COMPLETED ✅).
 - **Phase 1**: Stability & Foundation (COMPLETED ✅ - Battery optimization, Language support).
 - **Phase 1.5**: Developer Tools & Diagnostics (COMPLETED ✅ - Test Ringing in settings, 7-clicks dev mode, database mock & clear, active alarms diagnostics).
-- **Phase 2**: UX Refinement (In Progress 🏗️ - Swipe-to-dismiss & Snackbar feedback; Keyboard, Conflict Check & Battery UX/Lifecycle fix COMPLETED ✅).
-- **Phase 3**: Advanced Features (Independent volume control).
+- **Phase 2**: UX Refinement (COMPLETED ✅ - Swipe-to-dismiss, Snackbar feedback, Keyboard, Conflict Check & Battery UX/Lifecycle fix).
+- **Phase 3**: Advanced Features (COMPLETED ✅ - Volume control & manual test audition).
 - **Phase 4**: Operations (Firebase Analytics & Crashlytics - **Security Rules**: `google-services.json` excluded from repo, injected via `GOOGLE_SERVICES_JSON_BASE64` secret in GitHub Actions CI/CD to prevent quota abuse).
 
 ## 📂 Project Structure (Key Files)

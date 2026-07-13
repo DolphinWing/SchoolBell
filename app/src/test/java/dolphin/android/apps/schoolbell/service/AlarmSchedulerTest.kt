@@ -26,7 +26,7 @@ class AlarmSchedulerTest {
             isActive = true,
             daysOfWeek = "3" // Wednesday
         )
-        
+
         val trigger = AlarmScheduler.calculateNextTriggerTime(schedule, now)
         assertNotNull(trigger)
 
@@ -47,7 +47,7 @@ class AlarmSchedulerTest {
             isActive = true,
             daysOfWeek = "3" // Wednesday
         )
-        
+
         val trigger = AlarmScheduler.calculateNextTriggerTime(schedule, now)
         assertNotNull(trigger)
 
@@ -67,7 +67,7 @@ class AlarmSchedulerTest {
             isActive = true,
             daysOfWeek = "1,2,3,4,5" // Mon-Fri
         )
-        
+
         val trigger = AlarmScheduler.calculateNextTriggerTime(schedule, now)
         assertNotNull(trigger)
 
@@ -87,7 +87,7 @@ class AlarmSchedulerTest {
             isActive = true,
             daysOfWeek = "6,7" // Sat, Sun
         )
-        
+
         val trigger = AlarmScheduler.calculateNextTriggerTime(schedule, now)
         assertNotNull(trigger)
 
