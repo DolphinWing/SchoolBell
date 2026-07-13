@@ -7,54 +7,29 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.NotificationsOff
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
@@ -63,27 +38,25 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dolphin.android.apps.schoolbell.BuildConfig
 import dolphin.android.apps.schoolbell.R
 import dolphin.android.apps.schoolbell.data.Schedule
-import dolphin.android.apps.schoolbell.service.BellRingService
 import dolphin.android.apps.schoolbell.ui.theme.SchoolBellTheme
 
 @Composable
@@ -150,8 +123,8 @@ fun MainScreen(
         )
     }
 
-    var developerClickCount by remember { mutableStateOf(0) }
-    var lastClickTime by remember { mutableStateOf(0L) }
+    var developerClickCount by remember { mutableIntStateOf(0) }
+    var lastClickTime by remember { mutableLongStateOf(0L) }
     var showDevDialog by remember { mutableStateOf(false) }
 
     if (showDevDialog) {
@@ -220,49 +193,7 @@ fun MainScreen(
     }
 }
 
-@Composable
-fun BatteryOptimizationDialog(
-    onDismiss: (neverShowAgain: Boolean) -> Unit,
-    onGoToSettings: (neverShowAgain: Boolean) -> Unit
-) {
-    var neverShowAgain by remember { mutableStateOf(false) }
-
-    AlertDialog(
-        onDismissRequest = { onDismiss(neverShowAgain) },
-        title = {
-            Text(text = stringResource(R.string.battery_dialog_title))
-        },
-        text = {
-            Column {
-                Text(text = stringResource(R.string.battery_dialog_desc))
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { neverShowAgain = !neverShowAgain }
-                ) {
-                    Checkbox(
-                        checked = neverShowAgain,
-                        onCheckedChange = { neverShowAgain = it }
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.battery_dialog_never_show))
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onGoToSettings(neverShowAgain) }) {
-                Text(text = stringResource(R.string.battery_dialog_settings_btn))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = { onDismiss(neverShowAgain) }) {
-                Text(text = stringResource(R.string.battery_dialog_cancel_btn))
-            }
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContent(
     schedules: List<Schedule>,
@@ -300,8 +231,7 @@ fun MainContent(
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.main_add_schedule))
             }
         }
-    )
-    { innerPadding ->
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -375,331 +305,9 @@ fun MainContent(
     }
 }
 
-@Composable
-fun GlobalSettingsCard(
-    masterEnabled: Boolean,
-    useCustomBell: Boolean,
-    onToggleMaster: (Boolean) -> Unit,
-    onToggleCustomBell: (Boolean) -> Unit,
-    onTestBell: () -> Unit,
-    initialExpanded: Boolean = false
-) {
-    var isExpanded by remember { mutableStateOf(initialExpanded) }
-    val shouldBeExpanded = isExpanded || !masterEnabled
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .animateContentSize(),
-        colors = CardDefaults.cardColors(
-            containerColor = if (masterEnabled)
-                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-            else
-                MaterialTheme.colorScheme.errorContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .clickable { if (masterEnabled) isExpanded = !isExpanded }
-                .padding(16.dp)
-        ) {
-            // Header Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.settings_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    if (!shouldBeExpanded) {
-                        Text(
-                            text = if (masterEnabled) {
-                                if (useCustomBell) stringResource(R.string.settings_summary_campus) else stringResource(
-                                    R.string.settings_summary_system
-                                )
-                            } else {
-                                stringResource(R.string.settings_summary_disabled)
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (masterEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-                if (masterEnabled) {
-                    Icon(
-                        imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            if (shouldBeExpanded) {
-                Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider(
-                    color = if (masterEnabled)
-                        MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
-                    else
-                        MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.1f)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Row 1: Master Switch
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = if (masterEnabled) Icons.Default.Notifications else Icons.Default.NotificationsOff,
-                        contentDescription = null,
-                        tint = if (masterEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.settings_master_switch),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            if (masterEnabled) stringResource(R.string.settings_enabled) else stringResource(R.string.settings_disabled),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (masterEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                        )
-                    }
-                    Switch(
-                        checked = masterEnabled,
-                        onCheckedChange = onToggleMaster,
-                        colors = SwitchDefaults.colors(
-                            uncheckedThumbColor = MaterialTheme.colorScheme.error,
-                            uncheckedTrackColor = MaterialTheme.colorScheme.errorContainer,
-                        )
-                    )
-                }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    color = if (masterEnabled)
-                        MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
-                    else
-                        MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.1f)
-                )
-
-                // Row 2: Ringtone Mode
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MusicNote,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.settings_ringtone_mode),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            if (useCustomBell) stringResource(R.string.settings_campus_bell) else stringResource(R.string.settings_system_alarm),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (useCustomBell) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = useCustomBell,
-                        onCheckedChange = onToggleCustomBell,
-                        thumbContent = {
-                            Icon(
-                                imageVector = Icons.Default.MusicNote,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize)
-                            )
-                        }
-                    )
-                }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    color = if (masterEnabled)
-                        MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
-                    else
-                        MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.1f)
-                )
-
-                // Row 3: Test Alarm
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onTestBell() },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = null,
-                        tint = if (masterEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.settings_test_alarm),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (masterEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onErrorContainer
-                        )
-                        Text(
-                            stringResource(R.string.settings_test_alarm_summary),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (masterEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onErrorContainer.copy(
-                                alpha = 0.7f
-                            )
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun PermissionWarningCard(
-    permissionsState: MainViewModel.PermissionsState,
-    onRequestNotification: () -> Unit,
-    onRequestExactAlarm: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer
-        )
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    stringResource(R.string.perm_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-
-            if (!permissionsState.hasNotificationPermission) {
-                Text(
-                    stringResource(R.string.perm_notification_desc),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                TextButton(onClick = onRequestNotification) {
-                    Text(stringResource(R.string.perm_notification_btn))
-                }
-            }
-
-            if (!permissionsState.canScheduleExactAlarms) {
-                Text(
-                    stringResource(R.string.perm_exact_alarm_desc),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                TextButton(onClick = onRequestExactAlarm) {
-                    Text(stringResource(R.string.perm_exact_alarm_btn))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ScheduleCard(
-    schedule: Schedule,
-    onToggle: (Boolean) -> Unit,
-    onDelete: () -> Unit,
-    onClick: () -> Unit
-) {
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = if (schedule.isActive)
-                MaterialTheme.colorScheme.surface
-            else
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .alpha(if (schedule.isActive) 1f else 0.45f)
-            ) {
-                Text(
-                    text = schedule.formattedTime(),
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    ),
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = formatDays(schedule.daysOfWeek),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = schedule.label,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            IconButton(onClick = onDelete) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = stringResource(R.string.main_delete),
-                    tint = MaterialTheme.colorScheme.error
-                )
-            }
-
-            Switch(
-                checked = schedule.isActive,
-                onCheckedChange = onToggle
-            )
-        }
-    }
-}
-
-@Composable
-private fun formatDays(days: String): String {
-    val dayMap = mapOf(
-        "1" to stringResource(R.string.day_mon),
-        "2" to stringResource(R.string.day_tue),
-        "3" to stringResource(R.string.day_wed),
-        "4" to stringResource(R.string.day_thu),
-        "5" to stringResource(R.string.day_fri),
-        "6" to stringResource(R.string.day_sat),
-        "7" to stringResource(R.string.day_sun)
-    )
-    return days.split(",").mapNotNull { dayMap[it.trim()] }.joinToString(", ")
-}
-
 @Preview(showBackground = true, name = "Light Mode")
 @Composable
-private fun MainScreenPreview() {
+fun MainScreenPreview() {
     SchoolBellTheme {
         MainContent(
             schedules = listOf(
@@ -708,7 +316,10 @@ private fun MainScreenPreview() {
             ),
             masterEnabled = true,
             useCustomBell = true,
-            permissionsState = MainViewModel.PermissionsState(true, true),
+            permissionsState = MainViewModel.PermissionsState(
+                hasNotificationPermission = true,
+                canScheduleExactAlarms = true
+            ),
             snackbarHostState = remember { SnackbarHostState() },
             onToggleMaster = {},
             onToggleCustomBell = {},
@@ -726,7 +337,7 @@ private fun MainScreenPreview() {
 
 @Preview(showBackground = true, name = "Dark Mode")
 @Composable
-private fun MainScreenDarkPreview() {
+fun MainScreenDarkPreview() {
     SchoolBellTheme(darkTheme = true) {
         MainContent(
             schedules = listOf(
@@ -735,7 +346,10 @@ private fun MainScreenDarkPreview() {
             ),
             masterEnabled = true,
             useCustomBell = true,
-            permissionsState = MainViewModel.PermissionsState(true, true),
+            permissionsState = MainViewModel.PermissionsState(
+                hasNotificationPermission = true,
+                canScheduleExactAlarms = true
+            ),
             snackbarHostState = remember { SnackbarHostState() },
             onToggleMaster = {},
             onToggleCustomBell = {},
@@ -749,192 +363,4 @@ private fun MainScreenDarkPreview() {
             onRequestExactAlarm = {}
         )
     }
-}
-
-@Preview(showBackground = true, name = "Settings Card Collapsed")
-@Composable
-private fun GlobalSettingsCardCollapsedPreview() {
-    SchoolBellTheme {
-        Box(modifier = Modifier.padding(16.dp)) {
-            GlobalSettingsCard(
-                masterEnabled = true,
-                useCustomBell = true,
-                onToggleMaster = {},
-                onToggleCustomBell = {},
-                onTestBell = {}
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true, name = "Settings Card Expanded")
-@Composable
-fun GlobalSettingsCardExpandedPreview() {
-    SchoolBellTheme {
-        Box(modifier = Modifier.padding(16.dp)) {
-            GlobalSettingsCard(
-                masterEnabled = true,
-                useCustomBell = true,
-                onToggleMaster = {},
-                onToggleCustomBell = {},
-                onTestBell = {},
-                initialExpanded = true
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true, name = "Settings Card Disabled (Warning)")
-@Composable
-private fun GlobalSettingsCardDisabledPreview() {
-    SchoolBellTheme {
-        Box(modifier = Modifier.padding(16.dp)) {
-            GlobalSettingsCard(
-                masterEnabled = false,
-                useCustomBell = true,
-                onToggleMaster = {},
-                onToggleCustomBell = {},
-                onTestBell = {}
-            )
-        }
-    }
-}
-
-@Composable
-fun DeveloperToolsDialog(
-    onDismiss: () -> Unit,
-    onAddMockSchedules: () -> Unit,
-    onClearAllSchedules: () -> Unit,
-    getDiagnostics: () -> List<String>
-) {
-    var diagnosticsList by remember { mutableStateOf(emptyList<String>()) }
-    val context = LocalContext.current
-
-    // Load diagnostics initially
-    LaunchedEffect(Unit) {
-        diagnosticsList = getDiagnostics()
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(text = "Developer Tools", fontWeight = FontWeight.Bold)
-        },
-        text = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Section 1: Actions
-                Text(
-                    text = "Actions",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TextButton(
-                        onClick = {
-                            onAddMockSchedules()
-                            diagnosticsList = getDiagnostics()
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Add Mocks")
-                    }
-
-                    TextButton(
-                        onClick = {
-                            onClearAllSchedules()
-                            diagnosticsList = getDiagnostics()
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Text("Clear All")
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TextButton(
-                        onClick = {
-                            val label = "Developer Test Ringing"
-                            val intent = Intent(context, BellRingService::class.java).apply {
-                                putExtra("SCHEDULE_LABEL", label)
-                            }
-                            ContextCompat.startForegroundService(context, intent)
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Test Ring")
-                    }
-
-                    TextButton(
-                        onClick = {
-                            val intent = Intent(context, BellRingService::class.java).apply {
-                                action = BellRingService.ACTION_STOP
-                            }
-                            ContextCompat.startForegroundService(context, intent)
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Text("Force Silent")
-                    }
-                }
-
-                HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
-
-                // Section 2: Diagnostics
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Active Alarms Diagnostics",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    IconButton(onClick = { diagnosticsList = getDiagnostics() }) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh"
-                        )
-                    }
-                }
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp)
-                        .alpha(0.8f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    items(diagnosticsList) { diagnostic ->
-                        Text(
-                            text = diagnostic,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Close")
-            }
-        }
-    )
 }

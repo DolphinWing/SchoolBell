@@ -51,3 +51,4 @@ jobs:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
         status: ${{ job.status }}
         content: "SchoolBell Google Play Internal Publish"
+        nodetail: true

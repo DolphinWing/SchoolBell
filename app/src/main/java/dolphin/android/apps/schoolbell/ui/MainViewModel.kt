@@ -1,26 +1,18 @@
 package dolphin.android.apps.schoolbell.ui
 
-import android.Manifest
-import android.app.AlarmManager
 import android.app.Application
 import android.app.backup.BackupManager
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.annotation.VisibleForTesting
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import dolphin.android.apps.schoolbell.BuildConfig
 import dolphin.android.apps.schoolbell.data.Schedule
 import dolphin.android.apps.schoolbell.data.ScheduleDao
 import dolphin.android.apps.schoolbell.data.ScheduleDatabase
 import dolphin.android.apps.schoolbell.data.SettingsRepository
 import dolphin.android.apps.schoolbell.service.AlarmScheduler
-import dolphin.android.apps.schoolbell.BuildConfig
-import android.os.PowerManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 class MainViewModel(
     application: Application,
@@ -68,7 +61,7 @@ class MainViewModel(
         }
         viewModelScope.launch {
             // Delay check to avoid startup congestion
-            delay(3000)
+            delay(3000.milliseconds)
             checkBatteryOptimizationWarning()
         }
     }
@@ -233,7 +226,7 @@ class MainViewModel(
             override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
                 val database = ScheduleDatabase.getDatabase(application)
-                
+
                 return MainViewModel(
                     application,
                     database.scheduleDao(),

@@ -54,3 +54,4 @@ jobs:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
         status: ${{ job.status }}
         content: "SchoolBell Android CI Run"
+        nodetail: true

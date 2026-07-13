@@ -41,7 +41,7 @@ SchoolBell is a modern Android application for scheduling and triggering school 
     - Direct runtime permission requests for Notifications.
     - Intent-based redirection to `Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM` for Exact Alarms.
 - **Battery Optimization Guide**: Delayed check (3 seconds after startup) verifies if the app is optimized. If optimized and not permanently ignored, displays a Snackbar. Clicking "View" opens an explanation Dialog with a "Never show again" option (saved in DataStore), redirecting to `Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS`.
-- **Lifecycle Awareness**: Uses `DisposableEffect` to trigger permission/battery re-checks whenever the user returns to the app, ensuring the UI stays in sync with system settings.
+- **Lifecycle Awareness & Throttling**: Uses `LifecycleEventObserver` (via `DisposableEffect`) to trigger permission re-checks on `ON_RESUME` (excluding battery optimizations to prevent redundant alerts). Battery warning is checked 3 seconds after startup and throttled using a session-level memory flag to pop up at most once per session.
 
 ### 4. Navigation 3 Strategy
 - Destinations are defined as `Serializable` objects (e.g., `MainKey`, `EditScheduleKey`).
@@ -59,14 +59,14 @@ A detailed `ROADMAP.md` is available in the project root, outlining planned enha
 - **Phase 0**: Testing & Quality Assurance (COMPLETED ✅).
 - **Phase 1**: Stability & Foundation (COMPLETED ✅ - Battery optimization, Language support).
 - **Phase 1.5**: Developer Tools & Diagnostics (COMPLETED ✅ - Test Ringing in settings, 7-clicks dev mode, database mock & clear, active alarms diagnostics).
-- **Phase 2**: UX Refinement (In Progress 🏗️ - Swipe-to-dismiss, Snackbar feedback & Battery UX/Lifecycle fix; Keyboard & Conflict Check COMPLETED ✅).
+- **Phase 2**: UX Refinement (In Progress 🏗️ - Swipe-to-dismiss & Snackbar feedback; Keyboard, Conflict Check & Battery UX/Lifecycle fix COMPLETED ✅).
 - **Phase 3**: Advanced Features (Independent volume control).
 - **Phase 4**: Operations (Firebase Analytics & Crashlytics - **Security Rules**: `google-services.json` excluded from repo, injected via `GOOGLE_SERVICES_JSON_BASE64` secret in GitHub Actions CI/CD to prevent quota abuse).
 
 ## 📂 Project Structure (Key Files)
 - `dolphin.android.apps.schoolbell.data`: Room entities, DAO, Database, and `SettingsRepository`.
 - `dolphin.android.apps.schoolbell.service`: `AlarmScheduler`, `AlarmReceiver`, and `BellRingService`.
-- `dolphin.android.apps.schoolbell.ui`: Compose Screens (`MainScreen`, `EditScheduleScreen`) and Material 3 Theme.
+- `dolphin.android.apps.schoolbell.ui`: Compose Screens (`MainScreen`, `EditScheduleScreen`), decoupled Dialogs (`BatteryOptimizationDialog`, `DeveloperToolsDialog`), custom Cards (`GlobalSettingsCard`, `ScheduleCard`, `PermissionWarningCard`), and Material 3 Theme.
 - `store_assets/`: Marketing materials, store listing copy, and image specifications for Google Play Console.
 
 ## 🛠️ Current Development State
