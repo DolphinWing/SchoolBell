@@ -49,11 +49,23 @@
     - **播放器聯動**：修改 `BellRingService` 於播放 `Campus Bell` 時取得該音量並套用至 `mediaPlayer.setVolume(vol, vol)`。
     - **測試與試聽**：不採用滑動釋放後自動播放的「自動試聽」設計，而由使用者點擊下方的「測試響鈴系統」主動觸發試聽，保障使用者在安靜場合的控制權，UI 代碼更為簡潔（KISS 原則）。
     - **單元測試**：撰寫 Repository 與 ViewModel 單元測試驗證 `0.5f` 預設值、`0.0f..1.0f` 邊界防禦與 DataStore 寫入同步。
+- [ ] **系統鬧鐘響鈴持續時間設定 (System Alarm Duration)**：在全域設定中提供響鈴持續時間選項（例如 15 秒、30 秒等），取代原本寫死的 Safety Watchdog 限制。
+- [ ] **自訂媒體檔案播放 (Custom Media Playback)**：
+  * 允許使用者自訂外部音訊檔案作為鈴聲。
+  * 實作 Storage Access Framework (SAF) 並持久化 URI 權限 (`takePersistableUriPermission`)，避免重開機後失去讀取權限。
+  * 實作健全的 Fail-safe 機制，當自訂檔案損毀或遺失時，自動降級播放預設鈴聲，確保響鈴功能不中斷。
 
 ### Phase 4: 數據洞察與維運 (Insights & Operations)
 - [x] **Firebase Analytics & Crashlytics 整合**：追蹤核心功能使用數據並自動收集崩潰報告。
   *   *隱私合規規範*：必須在 `AndroidManifest.xml` 中使用 `tools:node="remove"` 強制移除 `AD_ID` 權限。此做法能保留 100% 的 App 使用行為分析與 Crash 追蹤功能，同時完全避開 Google Play 廣告 ID 宣告政策與隱私合規審查。
   *   *憑證與安全管理*：`google-services.json` 必須加入 `.gitignore` 以防洩漏至 Public Repo。在 GitHub Actions 中使用 `GOOGLE_SERVICES_JSON_BASE64` 進行 Secrets 注入解碼，並於 Google Cloud Console 限制 API Key 僅限本套件名稱與特定 SHA-1 指紋存取，防範 Quota 濫用與垃圾數據灌入。
+- [ ] **Firebase Analytics (Alarm 延遲監控)**：
+  * 在 Alarm 觸發時，計算預期與實際時間戳之差值（Latency）。
+  * 上報延遲數據，並帶上裝置型號、SDK 版本、是否忽略電池最佳化等 Metadata，以量化分析不同 Android 系統下的背景準確度。
+- [ ] **Firebase Crashlytics & Timber 整合 (診斷優化)**：
+  * 追蹤核心功能使用數據並自動收集崩潰報告。
+  * *隱私與金鑰安全*：強制移除 `AD_ID` 權限以合規；`google-services.json` 真實金鑰使用 GitHub Secrets 在 CI 階段動態覆寫。
+  * *日誌軌跡打包*：實作自訂的 `CrashlyticsTree` 連接 Timber。在發生 Crash 時，將最近寫入緩衝區的 Log 軌跡隨同 Exception 上報，加速定位背景響鈴或音訊播控崩潰的現場。
 
 ### Phase 5: 前瞻 AI 功能探索 (Experimental AI Features - ⚠️ 極低優先權)
 - [ ] **端側離線語意鬧鐘 (On-Device AI Voice Control)**：

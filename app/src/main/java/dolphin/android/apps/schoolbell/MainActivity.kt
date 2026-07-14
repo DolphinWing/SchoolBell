@@ -43,6 +43,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+
     private fun debugTestBell() {
         val label = getString(R.string.main_test_ringing)
         val intent = Intent(this, BellRingService::class.java).apply {

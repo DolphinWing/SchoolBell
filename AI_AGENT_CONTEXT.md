@@ -34,6 +34,7 @@ SchoolBell is a modern Android application for scheduling and triggering school 
     - Uses `MediaPlayer` to play either the custom `res/raw/off_class.mp3` or the system default alarm sound based on user preference.
     - Issues a **High-Priority (Heads-up) Notification** with a "STOP" action button.
     - Features a 15-second safety watchdog to self-stop if not silenced manually.
+    - Configured with `contentPendingIntent` pointing to `MainActivity` using `FLAG_ACTIVITY_NEW_TASK` and `FLAG_ACTIVITY_SINGLE_TOP` flags. Working in tandem with `MainActivity`'s `singleTask` launchMode, this prevents duplicate instances of `MainActivity` and its `MainViewModel` from being created when multiple alarms trigger throughout the day.
 
 ### 3. Permission Self-Check & UI Prompts
 - **`PermissionsState`**: Managed by `MainViewModel`, tracks `POST_NOTIFICATIONS` (Android 13+) and `canScheduleExactAlarms` (Android 12+).
@@ -90,6 +91,7 @@ A detailed `ROADMAP.md` is available in the project root, outlining planned enha
 - **Android 14+ Compatibility**: Requires `SCHEDULE_EXACT_ALARM` or `USE_EXACT_ALARM`.
 - **Foreground Service**: Must declare and handle `mediaPlayback` type and corresponding permissions in `AndroidManifest.xml`.
 - **Edge-to-Edge**: Always use `WindowInsets` for padding in UI components. Base XML theme inherits from platform `android:Theme.Material.Light.NoActionBar` to avoid dependency on XML-based Material libraries.
+- **Single-Activity Launch Mode & Intent Routing**: `MainActivity` is declared with `android:launchMode="singleTask"` and overrides `onNewIntent` to call `setIntent(intent)`. This design guarantees that `MainViewModel` remains a single instance, preventing state fragmentation and multiple stacked activity windows.
 - **English-First Strings**: All hard-coded UI strings must use **English** only to prevent encoding issues during development. Localization to other languages (like Traditional Chinese) must be handled through `res/values/strings.xml` as planned in Phase 1 of the Roadmap.
 - **R8 / ProGuard Shrinking**: Enabled for release builds (`isMinifyEnabled = true`, `isShrinkResources = true`). Library-specific rules for Room and `kotlinx.serialization` are automatically resolved via consumer rules; custom overrides reside in `app/proguard-rules.pro`.
 
