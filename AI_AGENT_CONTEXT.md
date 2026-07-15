@@ -35,6 +35,12 @@ SchoolBell is a modern Android application for scheduling and triggering school 
     - Issues a **High-Priority (Heads-up) Notification** with a "STOP" action button.
     - Features a 15-second safety watchdog to self-stop if not silenced manually.
     - Configured with `contentPendingIntent` pointing to `MainActivity` using `FLAG_ACTIVITY_NEW_TASK` and `FLAG_ACTIVITY_SINGLE_TOP` flags. Working in tandem with `MainActivity`'s `singleTask` launchMode, this prevents duplicate instances of `MainActivity` and its `MainViewModel` from being created when multiple alarms trigger throughout the day.
+- **Activity Auto-Close Design (Proposed)**:
+    - **Goal**: Automatically close the alarm screen if the user does not respond, preventing long-term screen-on battery drain.
+    - **Trigger**: When `BellRingService` stops and goes through `onDestroy()`, it broadcasts `ACTION_ALARM_STOPPED`.
+    - **Tracking (`isFromAlarm`)**: The service puts `FROM_ALARM = true` in the notification `contentPendingIntent`. `MainActivity` reads this flag on `onCreate()` and `onNewIntent()` to identify if it was woken up by the alarm.
+    - **Interaction Guard**: `MainActivity` overrides `onUserInteraction()`. Any screen touch or key press resets the `isFromAlarm` flag to `false` immediately, ensuring the app remains open if the user starts using it.
+    - **System Behavior Align**: If the phone is already unlocked and active, Android degrades the full-screen intent to a simple Heads-up Notification, meaning the full-screen intent is not launched and the app won't auto-close on ongoing user sessions.
 
 ### 3. Permission Self-Check & UI Prompts
 - **`PermissionsState`**: Managed by `MainViewModel`, tracks `POST_NOTIFICATIONS` (Android 13+) and `canScheduleExactAlarms` (Android 12+).

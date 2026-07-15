@@ -35,6 +35,7 @@ class BellRingService : Service() {
         private const val NOTIFICATION_ID = 1001
         private const val CHANNEL_ID = "school_bell_ringing_channel"
         const val ACTION_STOP = "dolphin.android.apps.schoolbell.ACTION_STOP"
+        const val ACTION_ALARM_STOPPED = "dolphin.android.apps.schoolbell.ACTION_ALARM_STOPPED"
     }
 
     private var mediaPlayer: MediaPlayer? = null
@@ -189,6 +190,7 @@ class BellRingService : Service() {
 
         val contentIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra("FROM_ALARM", true)
         }
         val contentPendingIntent = PendingIntent.getActivity(
             this,
@@ -225,7 +227,6 @@ class BellRingService : Service() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = getString(R.string.notif_channel_desc)
-                enableVibration(true)
                 setBypassDnd(true)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
@@ -239,6 +240,12 @@ class BellRingService : Service() {
         Timber.tag(TAG).d("Service onDestroy")
         handler.removeCallbacks(autoStopRunnable)
         stopSound()
+        try {
+            sendBroadcast(Intent(ACTION_ALARM_STOPPED))
+            Timber.tag(TAG).d("Sent ACTION_ALARM_STOPPED broadcast")
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Error sending ACTION_ALARM_STOPPED broadcast")
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? {

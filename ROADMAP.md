@@ -40,8 +40,9 @@
     - **雙軌並行刪除**：整合「卡片滑動」與「垃圾桶按鈕點擊」，兩者皆指向同一個邏輯進行物理刪除（Approach B）。
     - **Snackbar 復原與操作回饋**：引進 `UiEvent` 聲明式事件架構，刪除時透過 ViewModel 派發帶有「復原 (Undo)」的 Snackbar（延長停留時間至 `Long`）；新增與還原成功時亦會派發對應的確認通知。針對無標籤的鬧鐘，自動以其時間 `"HH:mm"` 作為 fallback 標題以利識別。整體架構支援多語言並消除了 static context 的 Lint 安全問題。
 - [x] **電池最佳化警告 UX 優化與權限生命週期修復**：
-    - 修復 `MainScreen` 中 `DisposableEffect` 無法監聽返回事件的 Bug，改用 `LifecycleEventObserver` 監聽 `ON_RESUME`，確保從系統設定頁面返回時能即時重新檢查權限。
+    - 修復 `MainScreen` 中 `DisposableEffect` 無會監聽返回事件的 Bug，改用 `LifecycleEventObserver` 監聽 `ON_RESUME`，確保從系統設定頁面返回時能即時重新檢查權限。
     - 優化電池警告 Snackbar 顯示邏輯：引入 Session-level 記憶體防護（單次啟動僅提示一次），且在生命週期返回檢查時排除電池狀態，避免編輯鬧鐘或切換背景時重複彈出警告。
+- [x] **鬧鐘結束自動關閉 Activity (Auto-close Alarm Activity)**：當鬧鐘停止（逾時或使用者手動停止）且使用者無互動時，自動 `finish()` 被鬧鐘喚醒的 `MainActivity`，以防止螢幕長時間開啟與耗電。
 
 ### Phase 3: 進階功能 (Advanced Features)
 - [x] **獨立音量控制 (Volume Slider)**：

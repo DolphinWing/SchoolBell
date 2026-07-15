@@ -1,6 +1,9 @@
 package dolphin.android.apps.schoolbell
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -28,8 +31,27 @@ import dolphin.android.apps.schoolbell.ui.MainViewModel
 import dolphin.android.apps.schoolbell.ui.theme.SchoolBellTheme
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        private const val TAG = "MainActivity"
+    }
+
+    private var isFromAlarm = false
+
+    private val alarmStoppedReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (isFromAlarm) {
+                timber.log.Timber.tag(TAG).i("Alarm stopped without user interaction. Finishing activity.")
+                finish()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        parseIntent(intent)
+
+        val filter = IntentFilter(BellRingService.ACTION_ALARM_STOPPED)
+        ContextCompat.registerReceiver(this, alarmStoppedReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
 
         if (BuildConfig.DEBUG) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -46,6 +68,29 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        parseIntent(intent)
+    }
+
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        if (isFromAlarm) {
+            isFromAlarm = false
+            timber.log.Timber.tag(TAG).d("User interacted with the app. Auto-close disabled.")
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            unregisterReceiver(alarmStoppedReceiver)
+        } catch (e: Exception) {
+            timber.log.Timber.tag(TAG).e(e, "Error unregistering alarmStoppedReceiver")
+        }
+    }
+
+    private fun parseIntent(intent: Intent?) {
+        isFromAlarm = intent?.getBooleanExtra("FROM_ALARM", false) ?: false
+        timber.log.Timber.tag(TAG).d("parseIntent: isFromAlarm=$isFromAlarm")
     }
 
     private fun debugTestBell() {
