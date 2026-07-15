@@ -60,7 +60,6 @@ jobs:
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
         status: ${{ job.status }}
-        content: "SchoolBell Google Play Internal Publish"
         nodetail: true
         url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        description: "`${{ github.ref_name }}` | [${{ steps.short_sha.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) by ${{ github.actor }}"
+        description: "${{ github.repository }} `${{ github.ref_name }}` from [${{ steps.short_sha.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) by ${{ github.actor }}"
