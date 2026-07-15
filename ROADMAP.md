@@ -59,13 +59,14 @@
 - [x] **Firebase Analytics & Crashlytics 整合**：追蹤核心功能使用數據並自動收集崩潰報告。
   *   *隱私合規規範*：必須在 `AndroidManifest.xml` 中使用 `tools:node="remove"` 強制移除 `AD_ID` 權限。此做法能保留 100% 的 App 使用行為分析與 Crash 追蹤功能，同時完全避開 Google Play 廣告 ID 宣告政策與隱私合規審查。
   *   *憑證與安全管理*：`google-services.json` 必須加入 `.gitignore` 以防洩漏至 Public Repo。在 GitHub Actions 中使用 `GOOGLE_SERVICES_JSON_BASE64` 進行 Secrets 注入解碼，並於 Google Cloud Console 限制 API Key 僅限本套件名稱與特定 SHA-1 指紋存取，防範 Quota 濫用與垃圾數據灌入。
-- [ ] **Firebase Analytics (Alarm 延遲監控)**：
-  * 在 Alarm 觸發時，計算預期與實際時間戳之差值（Latency）。
-  * 上報延遲數據，並帶上裝置型號、SDK 版本、是否忽略電池最佳化等 Metadata，以量化分析不同 Android 系統下的背景準確度。
-- [ ] **Firebase Crashlytics & Timber 整合 (診斷優化)**：
-  * 追蹤核心功能使用數據並自動收集崩潰報告。
-  * *隱私與金鑰安全*：強制移除 `AD_ID` 權限以合規；`google-services.json` 真實金鑰使用 GitHub Secrets 在 CI 階段動態覆寫。
-  * *日誌軌跡打包*：實作自訂的 `CrashlyticsTree` 連接 Timber。在發生 Crash 時，將最近寫入緩衝區的 Log 軌跡隨同 Exception 上報，加速定位背景響鈴或音訊播控崩潰的現場。
+- [x] **Firebase Analytics (Alarm 延遲監控)**：
+  * **實作 Latency 計算**：在 Alarm 觸發時，計算實際時間與 `EXPECTED_TRIGGER_TIME` (Intent Extra) 的毫秒差值。
+  * **自訂事件上報**：向 Firebase 上報 `alarm_trigger_latency` 事件，包含 `latency_ms`、`is_battery_optimized` 與 `is_exact_alarm` 參數.
+  * **主控台設定**：於 Firebase Console 註冊對應的 Custom Metric 與 Dimensions 以利直覺分析（詳見 `AI_AGENT_CONTEXT.md` 說明）。
+- [x] **Firebase Crashlytics & Timber 整合 (診斷優化)**：
+  * **自訂 CrashlyticsTree**：實作繼承自 `Timber.Tree` 的 `CrashlyticsTree`，過濾並排除 `VERBOSE` 與 `DEBUG` 等級，僅將 `INFO` 以上的日誌轉發至 `FirebaseCrashlytics.log()` 以建立 Breadcrumbs 軌跡。
+  * **非致命錯誤上報**：當偵測到 `ERROR` 或 `WTF` 級別日誌且含有 `Throwable` 時，主動呼叫 `recordException(t)`。
+  * **初始化設定**：在 `SchoolBellApp` 中根據 `BuildConfig.DEBUG` 決定植入 `DebugTree` 或 `CrashlyticsTree`，確保安全與效能。
 
 ### Phase 5: 前瞻 AI 功能探索 (Experimental AI Features - ⚠️ 極低優先權)
 - [ ] **端側離線語意鬧鐘 (On-Device AI Voice Control)**：

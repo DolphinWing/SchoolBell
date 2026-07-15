@@ -115,5 +115,33 @@ To fully enable the build and publishing pipeline, configure the following secre
 1. **Android CI** ([android-ci.yml](file:///.github/workflows/android-ci.yml)): Triggered on pushing code or PRs. Runs tests, compiles debug builds, and reports status to Discord.
 2. **Internal Publish** ([internal-publish.yml](file:///.github/workflows/internal-publish.yml)): Triggered by pushing tags (format `v*`). Builds a release AAB, signs it, uploads to Google Play Internal track, and reports results to Discord.
 
+## 📊 Telemetry, Analytics & Diagnostics (Phase 4)
+
+為了在不匯出 BigQuery 的前提下，直接於 Firebase Console 預設介面分析背景 Alarm 的延遲精準度，以及在發生崩潰時擁有完整的日誌軌跡（Breadcrumbs），必須遵循以下配置規範。
+
+### 1. Telemetry 自訂定義 (Custom Definitions)
+必須於 Firebase Console 主控台手動註冊以下自訂項目：
+
+#### A. 自訂指標 (Custom Metrics)
+| Metric Name | Scope | Description | Event Parameter | Unit of Measurement |
+| :--- | :--- | :--- | :--- | :--- |
+| `Alarm Latency` | Event | Alarm trigger latency in milliseconds | `latency_ms` | Milliseconds |
+
+#### B. 自訂維度 (Custom Dimensions)
+| Dimension Name | Scope | Description | Event Parameter |
+| :--- | :--- | :--- | :--- |
+| `Is Battery Optimized` | Event | Whether battery optimization is enabled for the app | `is_battery_optimized` |
+| `Is Exact Alarm` | Event | Whether the alarm was scheduled as an exact alarm | `is_exact_alarm` |
+
+#### C. 主控台交叉分析指南 (Diagnostic Guide)
+* **基礎視圖**：進入 `Analytics -> Events -> alarm_trigger_latency` 檢視 `Alarm Latency` 的平均延遲時間，以及各裝置忽略電池最佳化的比例。
+* **交叉比對 (Comparison)**：於該事件視圖上方點擊 `Add comparison`，選取預設維度 `Device model` 或 `OS version`（由 SDK 自動上報，不佔自訂欄位配額），即可直接對比不同品牌手機（如 Samsung vs. Xiaomi）或不同系統版本在相同設定下的背景精準度。
+
+### 2. Diagnostics 診斷日誌規範 (CrashlyticsTree)
+為避免大量無用日誌佔用 Firebase 限制的 64KB 循環日誌快取（導致關鍵崩潰軌跡被洗掉），`CrashlyticsTree` 必須遵守以下設計：
+* **過濾規則**：只轉發 `Log.INFO` 級別以上的日誌。`VERBOSE` 與 `DEBUG` 僅於開發期的 `DebugTree` 本地輸出，不轉發至雲端。
+* **Breadcrumbs 格式**：寫入 `FirebaseCrashlytics.getInstance().log()` 的格式固定為 `"$priorityChar/$tag: $message"`（例如 `I/AlarmReceiver: Ring trigger: scheduleId=1`）。
+* **Exception 關聯**：若日誌包含 `Throwable`，在 `Log.ERROR` 或 `Log.WTF` 時必須呼叫 `recordException(t)` 來上報非致命錯誤（Non-fatal Error）。
+
 ---
 *Maintained by Brigette Aurora.*

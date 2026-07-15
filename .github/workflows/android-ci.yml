@@ -63,7 +63,6 @@ jobs:
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
         status: ${{ job.status }}
-        content: "SchoolBell Android CI Run"
         nodetail: true
         url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        description: "[${{ steps.short_sha.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) by ${{ github.actor }}"
+        description: "${{ github.repository }} [${{ steps.short_sha.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) by ${{ github.actor }}"

@@ -63,10 +63,19 @@ object AlarmScheduler {
         }
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+        
+        val isExact = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            alarmManager.canScheduleExactAlarms()
+        } else {
+            true
+        }
+
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             action = "dolphin.android.apps.schoolbell.ACTION_RING"
             putExtra("SCHEDULE_ID", schedule.id)
             putExtra("SCHEDULE_LABEL", schedule.label)
+            putExtra("EXPECTED_TRIGGER_TIME", triggerTime)
+            putExtra("IS_EXACT_ALARM", isExact)
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
