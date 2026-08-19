@@ -33,7 +33,8 @@ class BellRingService : Service() {
     companion object {
         private const val TAG = "BellRingService"
         private const val NOTIFICATION_ID = 1001
-        private const val CHANNEL_ID = "school_bell_ringing_channel"
+        private const val CHANNEL_ID = "school_bell_ringing_channel_v2"
+        private const val LEGACY_CHANNEL_ID = "school_bell_ringing_channel"
         const val ACTION_STOP = "dolphin.android.apps.schoolbell.ACTION_STOP"
         const val ACTION_ALARM_STOPPED = "dolphin.android.apps.schoolbell.ACTION_ALARM_STOPPED"
     }
@@ -209,6 +210,7 @@ class BellRingService : Service() {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setAutoCancel(false)
+            .setSilent(true)
             .setFullScreenIntent(contentPendingIntent, true) // crucial for heads-up and lock screen
             .setContentIntent(contentPendingIntent)
             .addAction(
@@ -221,16 +223,20 @@ class BellRingService : Service() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
+
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 getString(R.string.notif_channel_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = getString(R.string.notif_channel_desc)
+                setSound(null, null)
+                enableVibration(false)
                 setBypassDnd(true)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
-            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
         }
     }

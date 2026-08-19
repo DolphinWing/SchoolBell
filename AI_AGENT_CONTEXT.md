@@ -33,6 +33,7 @@ SchoolBell is a modern Android application for scheduling and triggering school 
     - Starts as `FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK`.
     - Uses `MediaPlayer` to play either the custom `res/raw/off_class.mp3` or the system default alarm sound based on user preference.
     - Issues a **High-Priority (Heads-up) Notification** with a "STOP" action button.
+    - **Silent Notification Channel (`school_bell_ringing_channel_v2`)**: The notification channel is explicitly silenced (`setSound(null, null)`, `enableVibration(false)`) and builder sets `setSilent(true)` so that Android system notification sounds do not chime right before the alarm sound. Legacy channel `school_bell_ringing_channel` is deleted on creation. All audio playback and relative volume scaling are exclusively handled by `MediaPlayer` with `USAGE_ALARM`.
     - Features a 15-second safety watchdog to self-stop if not silenced manually.
     - Configured with `contentPendingIntent` pointing to `MainActivity` using `FLAG_ACTIVITY_NEW_TASK` and `FLAG_ACTIVITY_SINGLE_TOP` flags. Working in tandem with `MainActivity`'s `singleTask` launchMode, this prevents duplicate instances of `MainActivity` and its `MainViewModel` from being created when multiple alarms trigger throughout the day.
 - **Activity Auto-Close Design (Proposed)**:
