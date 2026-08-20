@@ -47,7 +47,20 @@ jobs:
         fi
 
     - name: Generate Dependency Locks
-      run: ./gradlew :app:dependencies --write-locks --no-daemon
+      run: |
+        ./gradlew :app:dependencies --write-locks --no-daemon \
+          --init-script <(cat << 'EOF'
+        allprojects {
+          dependencyLocking {
+            lockAllConfigurations()
+          }
+        }
+        EOF
+        )
+
+    - name: Debug - List generated lockfiles
+      if: always()
+      run: find . -name "*.lockfile" -o -name "gradle.lockfile" 2>/dev/null || echo "No lockfiles found"
 
     - name: Install and Run OSV-Scanner CLI
       run: |
