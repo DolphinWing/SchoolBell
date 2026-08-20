@@ -48,15 +48,15 @@ jobs:
 
     - name: Generate Dependency Locks
       run: |
-        ./gradlew :app:dependencies --write-locks --no-daemon \
-          --init-script <(cat << 'EOF'
+        cat > /tmp/deps-lock.init.gradle << 'EOF'
         allprojects {
           dependencyLocking {
             lockAllConfigurations()
           }
         }
         EOF
-        )
+        ./gradlew :app:dependencies --write-locks --no-daemon \
+          --init-script /tmp/deps-lock.init.gradle
 
     - name: Debug - List generated lockfiles
       if: always()
