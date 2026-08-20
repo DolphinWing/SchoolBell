@@ -47,13 +47,17 @@ jobs:
         fi
 
     - name: Generate Dependency Locks
-      run: ./gradlew dependencies --write-locks --no-daemon
+      run: ./gradlew :app:dependencies --write-locks --no-daemon
 
     - name: Install and Run OSV-Scanner CLI
       run: |
-        curl -sSfL https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o osv-scanner
+        curl -sSfL \
+          https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 \
+          --output-file osv-scanner
         chmod +x osv-scanner
-        ./osv-scanner -r --format=sarif --output=results.sarif .
+        ./osv-scanner --lockfile=app/gradle.lockfile \
+          --format=sarif \
+          --output-file=results.sarif
 
     - name: Upload SARIF to GitHub Security Tab
       if: always()
