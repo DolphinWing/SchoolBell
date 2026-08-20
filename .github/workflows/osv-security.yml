@@ -63,6 +63,8 @@ jobs:
       run: find . -name "*.lockfile" -o -name "gradle.lockfile" 2>/dev/null || echo "No lockfiles found"
 
     - name: Install and Run OSV-Scanner CLI
+      id: osv_scan
+      continue-on-error: true
       run: |
         curl -sSfL \
           https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 \
@@ -83,8 +85,8 @@ jobs:
       uses: sarisia/actions-status-discord@v1
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        status: ${{ job.status }}
-        title: "🛡️ OSV Security Audit"
+        status: ${{ steps.osv_scan.outcome == 'failure' && 'failure' || 'success' }}
+        title: "${{ steps.osv_scan.outcome == 'failure' && '🚨 OSV Security Audit - Vulnerabilities Found' || '✅ OSV Security Audit - Clean' }}"
         nodetail: true
         url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         description: "${{ github.repository }} [${{ steps.short_sha.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) (Trigger: ${{ github.event_name }})"
