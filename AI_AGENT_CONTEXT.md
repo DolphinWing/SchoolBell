@@ -121,7 +121,7 @@ To fully enable the build and publishing pipeline, configure the following secre
 ### 🛠️ Workflows
 1. **Android CI** ([android-ci.yml](file:///.github/workflows/android-ci.yml)): Triggered on pushing code or PRs. Runs tests, compiles debug builds, and reports status to Discord.
 2. **Internal Publish** ([internal-publish.yml](file:///.github/workflows/internal-publish.yml)): Triggered by pushing tags (format `v*`). Builds a release AAB, signs it, uploads to Google Play Internal track, and reports results to Discord.
-3. **OSV Security Audit** ([osv-security.yml](file:///.github/workflows/osv-security.yml)): Triggered on schedule (weekly), pushes modifying dependency files, or manual dispatch. Scans dependencies via Google OSV-Scanner, uploads SARIF to GitHub Security Tab, and reports status to Discord.
+3. **OSV Security Audit** ([osv-security.yml](file:///.github/workflows/osv-security.yml)): Triggered on schedule (weekly), pushes modifying dependency files, or manual dispatch. Scans production dependencies (`releaseRuntimeClasspath`) via Google OSV-Scanner to eliminate test/toolchain noise, uploads SARIF to GitHub Security Tab (with auto-closing of resolved alerts), and reports status to Discord.
 
 ## 📊 Telemetry, Analytics & Diagnostics (Phase 4)
 

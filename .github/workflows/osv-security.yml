@@ -46,7 +46,7 @@ jobs:
           echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > app/google-services.json
         fi
 
-    - name: Generate Dependency Locks
+    - name: Generate Dependency Locks (Release Runtime Only)
       run: |
         cat > /tmp/deps-lock.init.gradle << 'EOF'
         allprojects {
@@ -55,7 +55,7 @@ jobs:
           }
         }
         EOF
-        ./gradlew :app:dependencies --write-locks --no-daemon \
+        ./gradlew :app:dependencies --configuration releaseRuntimeClasspath --write-locks --no-daemon \
           --init-script /tmp/deps-lock.init.gradle
 
     - name: Debug - List generated lockfiles
