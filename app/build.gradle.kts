@@ -15,7 +15,7 @@ android {
         applicationId = "dolphin.android.apps.schoolbell"
         minSdk = 23
         targetSdk = 37
-        versionCode = 2
+        versionCode = 8
         versionName = "0.4.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

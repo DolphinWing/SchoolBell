@@ -242,12 +242,15 @@ class MainViewModelTest {
         every { scheduleDao.getAllSchedulesFlow() } returns flowOf(sampleSchedules)
 
         val viewModel = MainViewModel(application, scheduleDao, settingsRepository, backupManager, systemFeatureChecker)
-        advanceUntilIdle()
 
+        val schedulesJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.schedules.collect {}
+        }
         val events = mutableListOf<UiEvent>()
         val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiEventFlow.collect { events.add(it) }
         }
+        advanceUntilIdle()
 
         val result = viewModel.exportSchedulesToJson()
         advanceUntilIdle()
@@ -259,6 +262,7 @@ class MainViewModelTest {
         assertEquals(R.string.dev_export_copied, event.messageRes)
         assertEquals(listOf("1"), event.formatArgs)
 
+        schedulesJob.cancel()
         collectJob.cancel()
     }
 
