@@ -61,6 +61,7 @@ SchoolBell is a modern Android application for scheduling and triggering school 
 - **Quick Test & Bulk Mock Mode**: In `DEBUG` builds, a `BugReport` action icon (Surface container) appears stacked above the main "Add" FAB. **Short press** instantly triggers `BellRingService` (test ringing). **Long press** triggers `insertMockSchedules()` in `MainViewModel` to quickly populate the database with mock school schedules.
 - **Keep Screen On**: In `DEBUG` builds, `FLAG_KEEP_SCREEN_ON` is added to the activity window, ensuring the screen remains on while the app is in the foreground for easier debugging.
 - **UI Contrast**: The main "Add" FAB uses the **Secondary (Sunset Orange)** color for better visual distinction from the primary-colored toggles in the schedule list.
+- **Developer Tools & Clipboard Backup**: 10-tap version backdoor in `MainScreen` opens `DeveloperToolsDialog`. Includes JSON export/import via `ClipboardManager` and `kotlinx.serialization` to seamlessly preserve and restore schedules across Debug/Release uninstalls.
 
 ### 6. UiEvent & Swipe-to-Dismiss Strategy
 - **`UiEvent` Architecture & Feedback**: Uses a sealed interface `UiEvent` to handle one-off UI side effects (e.g. `ShowSnackbar`). ViewModel posts events via a buffered `Channel<UiEvent>`, and UI collects them inside `LaunchedEffect(Unit)` using `applicationContext` string resolution to prevent static context Lint errors. Provides user feedback for deletion (with a `Long` duration Undo action), creation (`Short` duration), and restoration (`Short` duration).
@@ -121,7 +122,7 @@ To fully enable the build and publishing pipeline, configure the following secre
 ### 🛠️ Workflows
 1. **Android CI** ([android-ci.yml](file:///.github/workflows/android-ci.yml)): Triggered on pushing code or PRs. Runs tests, compiles debug builds, and reports status to Discord.
 2. **Internal Publish** ([internal-publish.yml](file:///.github/workflows/internal-publish.yml)): Triggered by pushing tags (format `v*`). Builds a release AAB, signs it, uploads to Google Play Internal track, and reports results to Discord.
-3. **OSV Security Audit** ([osv-security.yml](file:///.github/workflows/osv-security.yml)): Triggered on schedule (weekly), pushes modifying dependency files, or manual dispatch. Scans production dependencies (`releaseRuntimeClasspath`) via Google OSV-Scanner to eliminate test/toolchain noise, uploads SARIF to GitHub Security Tab (with auto-closing of resolved alerts), and reports status to Discord.
+3. **OSV Security Audit** ([osv-security.yml](file:///.github/workflows/osv-security.yml)): Triggered on schedule (weekly: Saturday 04:00 CST), pushes modifying dependency files, or manual dispatch. Scans production dependencies (`releaseRuntimeClasspath`) via Google OSV-Scanner to eliminate test/toolchain noise, uploads SARIF to GitHub Security Tab (with auto-closing of resolved alerts), and reports status to Discord.
 
 ## 📊 Telemetry, Analytics & Diagnostics (Phase 4)
 

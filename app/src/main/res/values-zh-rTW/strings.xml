@@ -82,4 +82,11 @@
     <string name="day_s_fri">五</string>
     <string name="day_s_sat">六</string>
     <string name="day_s_sun">日</string>
+
+    <!-- Developer Tools -->
+    <string name="dev_export_copied">已複製 %1$s 筆課表至剪貼簿</string>
+    <string name="dev_import_success">已從剪貼簿還原 %1$s 筆課表</string>
+    <string name="dev_import_error">剪貼簿內容無效：無法解析課表格式</string>
+    <string name="dev_import_empty">剪貼簿中未發現任何課表</string>
+    <string name="dev_export_empty">目前沒有可匯出的課表</string>
 </resources>

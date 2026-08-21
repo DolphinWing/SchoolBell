@@ -15,8 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.filled.PlayArrow
@@ -40,7 +40,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,6 +57,8 @@ fun DeveloperToolsDialog(
     onDismiss: () -> Unit,
     onAddMockSchedules: () -> Unit,
     onClearAllSchedules: () -> Unit,
+    onExportSchedules: () -> String?,
+    onImportSchedules: (String) -> Unit,
     getDiagnostics: () -> List<String>
 ) {
     var diagnosticsList by remember { mutableStateOf(emptyList<String>()) }
@@ -82,6 +86,11 @@ fun DeveloperToolsDialog(
                 },
                 onClearAllSchedules = {
                     onClearAllSchedules()
+                    diagnosticsList = getDiagnostics()
+                },
+                onExportSchedules = onExportSchedules,
+                onImportSchedules = {
+                    onImportSchedules(it)
                     diagnosticsList = getDiagnostics()
                 },
                 onTestRing = {
@@ -115,6 +124,8 @@ fun DeveloperToolsDialogContent(
     diagnosticsList: List<String>,
     onAddMockSchedules: () -> Unit,
     onClearAllSchedules: () -> Unit,
+    onExportSchedules: () -> String?,
+    onImportSchedules: (String) -> Unit,
     onTestRing: () -> Unit,
     onForceSilent: () -> Unit,
     onRefreshDiagnostics: () -> Unit
@@ -133,6 +144,8 @@ fun DeveloperToolsDialogContent(
         DeveloperActionPanel(
             onAddMock = onAddMockSchedules,
             onClearAll = onClearAllSchedules,
+            onExportSchedules = onExportSchedules,
+            onImportSchedules = onImportSchedules,
             onTestRing = onTestRing,
             onForceSilent = onForceSilent
         )
@@ -151,9 +164,13 @@ fun DeveloperToolsDialogContent(
 private fun DeveloperActionPanel(
     onAddMock: () -> Unit,
     onClearAll: () -> Unit,
+    onExportSchedules: () -> String?,
+    onImportSchedules: (String) -> Unit,
     onTestRing: () -> Unit,
     onForceSilent: () -> Unit
 ) {
+    val clipboardManager = LocalClipboardManager.current
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -231,6 +248,45 @@ private fun DeveloperActionPanel(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text("Force Silent", style = MaterialTheme.typography.labelMedium)
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FilledTonalButton(
+                onClick = {
+                    val json = onExportSchedules()
+                    if (!json.isNullOrBlank()) {
+                        clipboardManager.setText(AnnotatedString(json))
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ContentCopy,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Export JSON", style = MaterialTheme.typography.labelMedium)
+            }
+
+            FilledTonalButton(
+                onClick = {
+                    val clipText = clipboardManager.getText()?.text ?: ""
+                    onImportSchedules(clipText)
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ContentPaste,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Import JSON", style = MaterialTheme.typography.labelMedium)
             }
         }
     }
@@ -329,6 +385,8 @@ fun DeveloperToolsDialogContentPreview() {
                 ),
                 onAddMockSchedules = {},
                 onClearAllSchedules = {},
+                onExportSchedules = { null },
+                onImportSchedules = {},
                 onTestRing = {},
                 onForceSilent = {},
                 onRefreshDiagnostics = {}

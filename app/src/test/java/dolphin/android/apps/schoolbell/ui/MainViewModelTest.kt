@@ -213,4 +213,115 @@ class MainViewModelTest {
         coVerify { settingsRepository.setVolume(0.8f) }
         verify { backupManager.dataChanged() }
     }
+
+    @Test
+    fun `exportSchedulesToJson - when empty returns null and emits dev_export_empty snackbar`() = runTest {
+        val viewModel = MainViewModel(application, scheduleDao, settingsRepository, backupManager, systemFeatureChecker)
+
+        val events = mutableListOf<UiEvent>()
+        val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiEventFlow.collect { events.add(it) }
+        }
+
+        val result = viewModel.exportSchedulesToJson()
+        advanceUntilIdle()
+
+        org.junit.Assert.assertNull(result)
+        assertEquals(1, events.size)
+        val event = events.first() as UiEvent.ShowSnackbar
+        assertEquals(R.string.dev_export_empty, event.messageRes)
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun `exportSchedulesToJson - when non-empty returns JSON and emits dev_export_copied snackbar`() = runTest {
+        val sampleSchedules = listOf(
+            Schedule(id = 1, hour = 8, minute = 0, label = "Class Start", isActive = true, daysOfWeek = "1,2,3,4,5")
+        )
+        every { scheduleDao.getAllSchedulesFlow() } returns flowOf(sampleSchedules)
+
+        val viewModel = MainViewModel(application, scheduleDao, settingsRepository, backupManager, systemFeatureChecker)
+        advanceUntilIdle()
+
+        val events = mutableListOf<UiEvent>()
+        val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiEventFlow.collect { events.add(it) }
+        }
+
+        val result = viewModel.exportSchedulesToJson()
+        advanceUntilIdle()
+
+        org.junit.Assert.assertNotNull(result)
+        assertTrue(result!!.contains("Class Start"))
+        assertEquals(1, events.size)
+        val event = events.first() as UiEvent.ShowSnackbar
+        assertEquals(R.string.dev_export_copied, event.messageRes)
+        assertEquals(listOf("1"), event.formatArgs)
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun `importSchedulesFromJson - with invalid or corrupted JSON emits dev_import_error`() = runTest {
+        val viewModel = MainViewModel(application, scheduleDao, settingsRepository, backupManager, systemFeatureChecker)
+
+        val events = mutableListOf<UiEvent>()
+        val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiEventFlow.collect { events.add(it) }
+        }
+
+        viewModel.importSchedulesFromJson("invalid-json-string")
+        advanceUntilIdle()
+
+        assertEquals(1, events.size)
+        val event = events.first() as UiEvent.ShowSnackbar
+        assertEquals(R.string.dev_import_error, event.messageRes)
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun `importSchedulesFromJson - with valid JSON inserts schedules and schedules active alarms`() = runTest {
+        val viewModel = MainViewModel(application, scheduleDao, settingsRepository, backupManager, systemFeatureChecker)
+
+        val validJson = """
+            [
+              {
+                "id": 10,
+                "hour": 9,
+                "minute": 15,
+                "label": "Morning Bell",
+                "isActive": true,
+                "daysOfWeek": "1,2,3,4,5",
+                "createdAt": 1700000000000
+              }
+            ]
+        """.trimIndent()
+
+        coEvery { scheduleDao.insert(any()) } returns 101L
+
+        val events = mutableListOf<UiEvent>()
+        val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiEventFlow.collect { events.add(it) }
+        }
+
+        viewModel.importSchedulesFromJson(validJson)
+        advanceUntilIdle()
+
+        coVerify {
+            scheduleDao.insert(match {
+                it.id == 0 && it.hour == 9 && it.minute == 15 && it.label == "Morning Bell"
+            })
+        }
+        verify { AlarmScheduler.scheduleAlarm(any(), match { it.id == 101 && it.label == "Morning Bell" }) }
+        verify { backupManager.dataChanged() }
+
+        assertEquals(1, events.size)
+        val event = events.first() as UiEvent.ShowSnackbar
+        assertEquals(R.string.dev_import_success, event.messageRes)
+        assertEquals(listOf("1"), event.formatArgs)
+
+        collectJob.cancel()
+    }
 }

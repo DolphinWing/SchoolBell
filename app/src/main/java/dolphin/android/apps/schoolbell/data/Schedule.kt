@@ -2,7 +2,9 @@ package dolphin.android.apps.schoolbell.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Entity(tableName = "schedules")
 data class Schedule(
     @PrimaryKey(autoGenerate = true)

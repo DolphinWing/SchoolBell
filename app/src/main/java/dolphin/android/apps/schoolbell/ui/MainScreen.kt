@@ -141,6 +141,8 @@ fun MainScreen(
             onDismiss = { showDevDialog = false },
             onAddMockSchedules = { viewModel.insertMockSchedules() },
             onClearAllSchedules = { viewModel.clearAllSchedules() },
+            onExportSchedules = { viewModel.exportSchedulesToJson() },
+            onImportSchedules = { viewModel.importSchedulesFromJson(it) },
             getDiagnostics = { viewModel.getDiagnosticsInfo() }
         )
     }

@@ -82,4 +82,11 @@
     <string name="day_s_fri">F</string>
     <string name="day_s_sat">S</string>
     <string name="day_s_sun">S</string>
+
+    <!-- Developer Tools -->
+    <string name="dev_export_copied">Schedules copied to clipboard (%1$s items)</string>
+    <string name="dev_import_success">Restored %1$s schedules from clipboard</string>
+    <string name="dev_import_error">Invalid clipboard content: Failed to parse schedules</string>
+    <string name="dev_import_empty">No schedules found in clipboard</string>
+    <string name="dev_export_empty">No schedules to export</string>
 </resources>

@@ -24,6 +24,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import timber.log.Timber
 import kotlin.time.Duration.Companion.milliseconds
 
 class MainViewModel(
@@ -268,6 +271,107 @@ class MainViewModel(
             }
             scheduleDao.deleteAll()
             backupManager.dataChanged()
+        }
+    }
+
+    fun exportSchedulesToJson(): String? {
+        val list = schedules.value
+        if (list.isEmpty()) {
+            viewModelScope.launch {
+                _uiEventChannel.send(
+                    UiEvent.ShowSnackbar(
+                        messageRes = dolphin.android.apps.schoolbell.R.string.dev_export_empty,
+                        duration = SnackbarDuration.Short
+                    )
+                )
+            }
+            return null
+        }
+        return try {
+            val json = Json { prettyPrint = true }
+            val jsonString = json.encodeToString(list)
+            viewModelScope.launch {
+                _uiEventChannel.send(
+                    UiEvent.ShowSnackbar(
+                        messageRes = dolphin.android.apps.schoolbell.R.string.dev_export_copied,
+                        formatArgs = listOf(list.size.toString()),
+                        duration = SnackbarDuration.Short
+                    )
+                )
+            }
+            jsonString
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to export schedules to JSON")
+            null
+        }
+    }
+
+    fun importSchedulesFromJson(jsonString: String) {
+        if (jsonString.isBlank()) {
+            viewModelScope.launch {
+                _uiEventChannel.send(
+                    UiEvent.ShowSnackbar(
+                        messageRes = dolphin.android.apps.schoolbell.R.string.dev_import_empty,
+                        duration = SnackbarDuration.Short
+                    )
+                )
+            }
+            return
+        }
+        viewModelScope.launch {
+            try {
+                val parsedList = Json.decodeFromString<List<Schedule>>(jsonString)
+                if (parsedList.isEmpty()) {
+                    _uiEventChannel.send(
+                        UiEvent.ShowSnackbar(
+                            messageRes = dolphin.android.apps.schoolbell.R.string.dev_import_empty,
+                            duration = SnackbarDuration.Short
+                        )
+                    )
+                    return@launch
+                }
+
+                val validSchedules = parsedList.mapNotNull { schedule ->
+                    if (schedule.hour in 0..23 && schedule.minute in 0..59) {
+                        schedule.copy(id = 0)
+                    } else null
+                }
+
+                if (validSchedules.isEmpty()) {
+                    _uiEventChannel.send(
+                        UiEvent.ShowSnackbar(
+                            messageRes = dolphin.android.apps.schoolbell.R.string.dev_import_error,
+                            duration = SnackbarDuration.Short
+                        )
+                    )
+                    return@launch
+                }
+
+                validSchedules.forEach { schedule ->
+                    val id = scheduleDao.insert(schedule)
+                    val inserted = schedule.copy(id = id.toInt())
+                    if (masterSwitchEnabled.value && inserted.isActive) {
+                        AlarmScheduler.scheduleAlarm(getApplication(), inserted)
+                    }
+                }
+                backupManager.dataChanged()
+
+                _uiEventChannel.send(
+                    UiEvent.ShowSnackbar(
+                        messageRes = dolphin.android.apps.schoolbell.R.string.dev_import_success,
+                        formatArgs = listOf(validSchedules.size.toString()),
+                        duration = SnackbarDuration.Short
+                    )
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to import schedules from JSON")
+                _uiEventChannel.send(
+                    UiEvent.ShowSnackbar(
+                        messageRes = dolphin.android.apps.schoolbell.R.string.dev_import_error,
+                        duration = SnackbarDuration.Short
+                    )
+                )
+            }
         }
     }
 

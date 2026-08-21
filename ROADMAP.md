@@ -30,6 +30,11 @@
 - [x] **一鍵清空資料庫**：在 Developer Tools 中提供一鍵刪除所有鬧鐘資料的捷徑。
 - [x] **系統 Alarm 排程檢測 (Next Trigger Time)**：在 Developer Tools 中列出目前已向系統 `AlarmManager` 註冊的 Active 鬧鐘，並顯示其下一次預期觸發的精確時間戳。
 - [x] **強制停止播放服務 (Force Silent)**：在 Developer Tools 中提供強制呼叫 `stopService()` 釋放 `MediaPlayer` 的功能。
+- [x] **課表 JSON 剪貼簿匯出與還原 (Schedule Backup & Restore via Clipboard)**：
+    * **目標**：解決 Debug (`debug.keystore`) ↔ Release (`release.jks`) 簽名不相容導致卸載換版時課表被清空的痛點。
+    * **匯出流程 (Export)**：從 Room 讀取所有 `Schedule`，透過 `kotlinx.serialization` 序列化為 JSON 字串並複製至剪貼簿 (`ClipboardManager`)，派發 Snackbar 提示成功。
+    * **還原流程 (Import)**：從剪貼簿讀取字串並進行 JSON Schema 反序列化防呆驗證。驗證通過後批次寫入 Room 資料庫，並觸發 `AlarmScheduler` 重新對齊註冊系統鬧鐘排程。
+    * **錯誤處理與防禦**：若剪貼簿內容非合法課表 JSON 或解析失敗，攔截例外並透過 `UiEvent.ShowSnackbar` 提示錯誤，避免 App 崩潰。
 
 ### Phase 2: 使用者體驗優化 (UX Refinement)
 重點在於強化 UI 的直覺性與操作流暢度。
