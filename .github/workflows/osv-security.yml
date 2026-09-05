@@ -2,8 +2,8 @@ name: OSV Security Audit
 
 on:
   schedule:
-    # Every Saturday at 04:00 CST/TST (Friday 20:00 UTC)
-    - cron: '0 20 * * 5'
+    # Every Saturday at 09:25 CST/TST (Saturday 01:25 UTC)
+    - cron: '25 1 * * 6'
   workflow_dispatch:
   push:
     branches: [ "main" ]
@@ -70,9 +70,8 @@ jobs:
           https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 \
           -o osv-scanner
         chmod +x osv-scanner
-        ./osv-scanner --lockfile=app/gradle.lockfile \
-          --format=sarif \
-          --output-file=results.sarif
+        ./osv-scanner --lockfile=app/gradle.lockfile --format=sarif --output-file=results.sarif || true
+        ./osv-scanner --lockfile=app/gradle.lockfile
 
     - name: Upload SARIF to GitHub Security Tab
       if: always()
