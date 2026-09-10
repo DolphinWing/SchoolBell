@@ -123,7 +123,8 @@ To fully enable the build and publishing pipeline, configure the following secre
 1. **Android CI** ([android-ci.yml](file:///.github/workflows/android-ci.yml)): Triggered on pushing code or PRs. Runs tests, compiles debug builds, and reports status to Discord.
 2. **Internal Publish** ([internal-publish.yml](file:///.github/workflows/internal-publish.yml)): Triggered by pushing tags (format `v*`). Builds a release AAB, signs it, uploads to Google Play Internal track, and reports results to Discord.
 3. **OSV Security Audit** ([osv-security.yml](file:///.github/workflows/osv-security.yml)): Triggered on schedule (weekly: Saturday 09:25 CST), pushes modifying dependency files, or manual dispatch. Scans production dependencies (`releaseRuntimeClasspath`) via Google OSV-Scanner to eliminate test/toolchain noise, uploads SARIF to GitHub Security Tab (with auto-closing of resolved alerts), and reports status to Discord.
-4. **Dependabot Updates** ([dependabot.yml](file:///.github/dependabot.yml)): Scheduled weekly (Monday 00:00 CST). Automatically groups all Gradle / Version Catalog dependency updates into a single grouped PR using Conventional Commits (`build(deps)` prefix). Integrated with Discord via GitHub Native Webhook.
+4. **Secrets & SAST Gatekeeper** ([security-gate.yml](file:///.github/workflows/security-gate.yml)): Triggered on pushes or manual dispatch. Run Semgrep SAST, and uploads SARIF to GitHub Security Tab (with auto-closing of resolved alerts).
+5. **Dependabot Updates** ([dependabot.yml](file:///.github/dependabot.yml)): Scheduled weekly (Monday 00:00 CST). Automatically groups all Gradle / Version Catalog dependency updates into a single grouped PR using Conventional Commits (`build(deps)` prefix). Integrated with Discord via GitHub Native Webhook.
 
 ## 📊 Telemetry, Analytics & Diagnostics (Phase 4)
 
