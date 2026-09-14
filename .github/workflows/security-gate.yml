@@ -11,6 +11,7 @@ permissions:
   contents: read
   security-events: write
   actions: read
+  pull-request: read
 
 jobs:
   security-gate:
@@ -29,7 +30,7 @@ jobs:
 
       # 1. 檢查金鑰與機密洩漏 (Gitleaks)
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
