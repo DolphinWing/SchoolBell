@@ -20,9 +20,12 @@ jobs:
     permissions:
       security-events: write
       contents: read
+      actions: read
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
 
     - name: Get short SHA
       id: short_sha
@@ -70,22 +73,76 @@ jobs:
           https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 \
           -o osv-scanner
         chmod +x osv-scanner
-        ./osv-scanner --lockfile=app/gradle.lockfile --format=sarif --output-file=results.sarif || true
-        ./osv-scanner --lockfile=app/gradle.lockfile
+
+        SCAN_EXIT=0
+        ./osv-scanner --lockfile=app/gradle.lockfile --format=sarif --output-file=results.sarif || SCAN_EXIT=$?
+        ./osv-scanner --lockfile=app/gradle.lockfile --format=markdown --output-file=results.md || true
+
+        if [ -s results.md ]; then
+          {
+            echo "### OSV Security Audit"
+            cat results.md
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat results.md
+        fi
+
+        SCAN_EXIT="${SCAN_EXIT}" python3 - << 'PY'
+        import json
+        import os
+
+        scan_exit = int(os.environ.get("SCAN_EXIT", "1"))
+        lines = []
+        if os.path.exists("results.sarif"):
+            try:
+                with open("results.sarif", "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                results = [
+                    r
+                    for run in data.get("runs", [])
+                    for r in run.get("results", [])
+                ]
+                for r in results[:10]:
+                    rule_id = r.get("ruleId", "UNKNOWN")
+                    msg_text = (r.get("message", {}).get("text", "") or "").splitlines()
+                    first_line = msg_text[0] if msg_text else ""
+                    lines.append(f"- `{rule_id}`: {first_line}" if first_line else f"- `{rule_id}`")
+                if len(results) > 10:
+                    lines.append(f"...and {len(results) - 10} more (see Actions Summary).")
+            except Exception as exc:
+                lines.append(f"Failed to parse results.sarif: {exc}")
+
+        if not lines:
+            if scan_exit == 0:
+                lines.append("No vulnerabilities found in app/gradle.lockfile.")
+            else:
+                lines.append(f"OSV-Scanner exited with code {scan_exit} (see workflow logs).")
+
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+            out.write(f"exit_code={scan_exit}\n")
+            out.write("summary<<OSV_SUMMARY_EOF\n")
+            out.write("\n".join(lines) + "\n")
+            out.write("OSV_SUMMARY_EOF\n")
+        PY
+
+        exit "${SCAN_EXIT}"
 
     - name: Upload SARIF to GitHub Security Tab
-      if: always()
+      if: always() && hashFiles('results.sarif') != ''
       uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: results.sarif
+        category: osv-scanner
+      continue-on-error: true
 
     - name: Send Discord Notification
       if: always()
       uses: sarisia/actions-status-discord@v1
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        status: ${{ steps.osv_scan.outcome == 'failure' && 'failure' || 'success' }}
-        title: "${{ steps.osv_scan.outcome == 'failure' && '🚨 OSV Security Audit - Vulnerabilities Found' || '✅ OSV Security Audit - Clean' }}"
+        status: ${{ (steps.osv_scan.outputs.exit_code == '0' && job.status == 'success') && 'success' || 'failure' }}
+        title: "${{ steps.osv_scan.outputs.exit_code == '1' && '🚨 OSV Security Audit - Vulnerabilities Found' || ((steps.osv_scan.outputs.exit_code == '0' && job.status == 'success') && '✅ OSV Security Audit - Clean' || '❌ OSV Security Audit - Workflow Error') }}"
         nodetail: true
         url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        description: "${{ github.repository }} [${{ steps.short_sha.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) (Trigger: ${{ github.event_name }})"
+        description: |
+          ${{ github.repository }} [${{ steps.short_sha.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) (Trigger: ${{ github.event_name }})
+          ${{ steps.osv_scan.outputs.summary || 'Scan did not complete (check workflow logs).' }}

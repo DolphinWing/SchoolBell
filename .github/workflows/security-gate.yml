@@ -11,7 +11,7 @@ permissions:
   contents: read
   security-events: write
   actions: read
-  pull-request: read
+  pull-requests: read
 
 jobs:
   security-gate:
@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           
@@ -46,10 +46,11 @@ jobs:
 
       # 3. 將掃描結果同步至 GitHub Security Tab
       - name: Upload SARIF to GitHub Security Tab
-        if: always()
+        if: always() && hashFiles('semgrep.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: semgrep.sarif
+          category: semgrep
         continue-on-error: true
         
       - name: Send Discord Notification
@@ -57,9 +58,8 @@ jobs:
         uses: sarisia/actions-status-discord@v1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          status: ${{ steps.semgrep_scan.outcome == 'failure' && 'failure' || 'success' }}
-          title: "${{ steps.semgrep_scan.outcome == 'failure' && '🚨 Semgrep OSS - Found' || '✅ Semgrep OSS - Clean' }}"
+          status: ${{ job.status }}
+          title: "${{ job.status == 'success' && '✅ Security Gate - Clean' || '🚨 Security Gate - Failed' }}"
           nodetail: true
           url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           description: "${{ github.repository }} [${{ steps.short_sha.outputs.sha_short }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) (Trigger: ${{ github.event_name }})"
-
