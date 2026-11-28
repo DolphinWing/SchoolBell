@@ -3,14 +3,43 @@ updates:
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "saturday"
+      interval: "monthly"
       time: "03:00"
       timezone: "Asia/Taipei"
     commit-message:
       prefix: "build(deps)"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 5
     groups:
-      all-dependencies:
+      # Keep tightly coupled Kotlin & KSP minor/patch updates together
+      kotlin-toolchain:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "com.google.devtools.ksp*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Batch routine library minor/patch updates; exclude AGP & Kotlin/KSP
+      minor-and-patch:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "com.android.*"
+          - "org.jetbrains.kotlin*"
+          - "com.google.devtools.ksp*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      time: "03:00"
+      timezone: "Asia/Taipei"
+    commit-message:
+      prefix: "ci(deps)"
+    open-pull-requests-limit: 2
+    groups:
+      github-actions:
         patterns:
           - "*"
