@@ -19,7 +19,7 @@ android {
         applicationId = "dolphin.android.apps.schoolbell"
         minSdk = 24
         targetSdk = 37
-        versionCode = 8
+        versionCode = 10
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -88,4 +88,9 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
     "ksp"(libs.androidx.room.compiler)
+    constraints {
+        implementation(libs.guava) {
+            because("Fix GHSA-5mg8-w23w-74h3 and GHSA-7g45-4rm6-3mm3 pulled in by play-services-measurement")
+        }
+    }
 }
