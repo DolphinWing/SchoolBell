@@ -42,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,7 +50,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dolphin.android.apps.schoolbell.R
 import dolphin.android.apps.schoolbell.ui.theme.SchoolBellTheme
-import java.util.Locale
 
 @Composable
 fun TimePickerDialog(
@@ -208,7 +208,7 @@ fun EditScheduleContent(
                     ) {
                         Text(
                             text = String.format(
-                                Locale.getDefault(),
+                                LocalLocale.current.platformLocale,
                                 "%02d:%02d",
                                 timePickerState.hour,
                                 timePickerState.minute

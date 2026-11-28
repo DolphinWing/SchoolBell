@@ -9,14 +9,18 @@ plugins {
 
 android {
     namespace = "dolphin.android.apps.schoolbell"
-    compileSdk = 37
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 1
+        }
+    }
 
     defaultConfig {
         applicationId = "dolphin.android.apps.schoolbell"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 37
         versionCode = 8
-        versionName = "0.4.2"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

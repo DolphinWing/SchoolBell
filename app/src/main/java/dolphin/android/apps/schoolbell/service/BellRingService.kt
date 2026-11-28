@@ -247,7 +247,7 @@ class BellRingService : Service() {
         handler.removeCallbacks(autoStopRunnable)
         stopSound()
         try {
-            sendBroadcast(Intent(ACTION_ALARM_STOPPED))
+            sendBroadcast(Intent(ACTION_ALARM_STOPPED).setPackage(packageName))
             Timber.tag(TAG).d("Sent ACTION_ALARM_STOPPED broadcast")
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error sending ACTION_ALARM_STOPPED broadcast")
