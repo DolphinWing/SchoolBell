@@ -35,11 +35,7 @@ open class SystemFeatureChecker(private val context: Context) {
     }
 
     open fun isIgnoringBatteryOptimizations(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
-            powerManager?.isIgnoringBatteryOptimizations(context.packageName) ?: true
-        } else {
-            true
-        }
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+        return powerManager?.isIgnoringBatteryOptimizations(context.packageName) ?: true
     }
 }

@@ -51,6 +51,9 @@ jobs:
         echo "MD5 Checksum of google-services.json:"
         md5sum app/google-services.json
 
+    - name: Run Lint
+      run: ./gradlew lintDebug --no-daemon
+
     - name: Run Unit Tests
       run: ./gradlew testDebugUnitTest --no-daemon
 

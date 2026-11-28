@@ -1,5 +1,6 @@
 package dolphin.android.apps.schoolbell.ui
 
+import android.content.ClipData
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,12 +40,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,6 +55,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import dolphin.android.apps.schoolbell.service.BellRingService
 import dolphin.android.apps.schoolbell.ui.theme.SchoolBellTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun DeveloperToolsDialog(
@@ -171,7 +174,9 @@ private fun DeveloperActionPanel(
     onTestRing: () -> Unit,
     onForceSilent: () -> Unit
 ) {
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -261,7 +266,11 @@ private fun DeveloperActionPanel(
                 onClick = {
                     val json = onExportSchedules()
                     if (!json.isNullOrBlank()) {
-                        clipboardManager.setText(AnnotatedString(json))
+                        coroutineScope.launch {
+                            clipboard.setClipEntry(
+                                ClipData.newPlainText("SchoolBell Schedules", json).toClipEntry()
+                            )
+                        }
                     }
                 },
                 modifier = Modifier.weight(1f)
@@ -277,8 +286,16 @@ private fun DeveloperActionPanel(
 
             FilledTonalButton(
                 onClick = {
-                    val clipText = clipboardManager.getText()?.text ?: ""
-                    onImportSchedules(clipText)
+                    coroutineScope.launch {
+                        val clipText = clipboard.getClipEntry()
+                            ?.clipData
+                            ?.takeIf { it.itemCount > 0 }
+                            ?.getItemAt(0)
+                            ?.coerceToText(context)
+                            ?.toString()
+                            ?: ""
+                        onImportSchedules(clipText)
+                    }
                 },
                 modifier = Modifier.weight(1f)
             ) {

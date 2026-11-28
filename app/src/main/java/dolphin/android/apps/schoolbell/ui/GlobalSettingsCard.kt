@@ -25,12 +25,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -266,14 +266,14 @@ private fun VolumeControlRow(
     masterEnabled: Boolean,
     onVolumeChange: (Float) -> Unit
 ) {
-    var sliderValue by remember(volume) { mutableFloatStateOf(volume) }
+    val sliderState = remember(volume) { SliderState(value = volume) }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = if (sliderValue == 0f || !useCustomBell) Icons.Filled.MusicOff else Icons.Filled.MusicNote,
+            imageVector = if (sliderState.value == 0f || !useCustomBell) Icons.Filled.MusicOff else Icons.Filled.MusicNote,
             contentDescription = null,
             tint = if (masterEnabled && useCustomBell) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant.copy(
                 alpha = 0.5f
@@ -295,7 +295,7 @@ private fun VolumeControlRow(
                 if (masterEnabled && useCustomBell) {
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${(sliderValue * 100).toInt()}%",
+                        text = "${(sliderState.value * 100).toInt()}%",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.secondary,
                         fontWeight = FontWeight.Bold
@@ -304,12 +304,11 @@ private fun VolumeControlRow(
             }
             if (useCustomBell) {
                 Slider(
-                    value = sliderValue,
-                    onValueChange = { sliderValue = it },
+                    state = sliderState,
+                    onValueChange = { sliderState.value = it },
                     onValueChangeFinished = {
-                        onVolumeChange(sliderValue)
+                        onVolumeChange(sliderState.value)
                     },
-                    valueRange = 0f..1f,
                     enabled = masterEnabled,
                     colors = SliderDefaults.colors(
                         thumbColor = MaterialTheme.colorScheme.secondary,
